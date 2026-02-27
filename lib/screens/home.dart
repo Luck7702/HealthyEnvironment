@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:LingkunganSehat/models/weather.dart';
 import 'package:LingkunganSehat/screens/information.dart';
@@ -30,7 +32,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    initializeEnvironment();
+    dataRefresh();
   }
 
   void setHomeState(EnvData envDataFresh) {
@@ -65,13 +67,19 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> initializeEnvironment({String? query, bool? something}) async {
-    debugPrint(query);
-    debugPrint("heeehahahaha");
     final envData = await loadEnvironment(query: query);
-    debugPrint(envData.status);
     if (envData.status != "Success") {
+      handleError(envData.status);
     } else {
       setHomeState(envData);
+    }
+  }
+
+  void dataRefresh() async {
+    while (true) {
+      initializeEnvironment();
+      debugPrint("Environment Fetched");
+      await Future.delayed(const Duration(minutes: 5));
     }
   }
 
