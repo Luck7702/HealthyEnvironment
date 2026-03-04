@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:LingkunganSehat/models/weather.dart';
 import 'package:LingkunganSehat/screens/information.dart';
