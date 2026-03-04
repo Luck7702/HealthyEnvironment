@@ -23,7 +23,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   EnvData envData = EnvData(
     location: "Mengambil lokasi...",
-    weather: emptyWeather(),
+    weather: Weather.emptyWeather,
     status: 'Awaiting...',
   );
 

@@ -37,7 +37,7 @@ Future<EnvData> loadEnvironment({String? query, Function? response}) async {
   if (data == null) {
     return EnvData(
       location: "",
-      weather: emptyWeather(),
+      weather: Weather.emptyWeather,
       status: "Data is Empty",
     );
   }
@@ -46,7 +46,7 @@ Future<EnvData> loadEnvironment({String? query, Function? response}) async {
     return EnvData(
       status: "Failed to Connect",
       location: '',
-      weather: emptyWeather(),
+      weather: Weather.emptyWeather,
     );
   } else {
     const space = "                                          ";
