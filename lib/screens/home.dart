@@ -158,6 +158,7 @@ class HomeScreenState extends State<HomeScreen> {
                     Center(child: RiskMeter(weather: envData.weather)),
 
                     // Center(child: Text("Risk Score: ${w.riskScore}")), // Debug
+                    
                     const SizedBox(height: 16),
                     EnvStats(weather: envData.weather),
                     const SizedBox(height: 24),

@@ -1,14 +1,17 @@
 class Weather {
+
   final int aqi;
   final int uv;
   final int temp;
   final int humidity;
+  final String condition;
 
   Weather({
     required this.aqi,
     required this.uv,
     required this.temp,
     required this.humidity,
+    this.condition = "Not Specified"
   });
 
   double get riskScore {
@@ -33,5 +36,5 @@ class Weather {
 
   static Weather get emptyWeather {
     return Weather(aqi: 0, uv: 0, temp: 0, humidity: 0);
-  }
+  }  
 }

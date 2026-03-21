@@ -23,12 +23,19 @@ class RecommendationSection extends StatelessWidget {
     }
 
     if (weather.temp >= 30) {
-      recs.add("Perbanyak minum air (cuaca panas)");
+      recs.add("Perbanyak minum air (suhu panas)");
     } else if (weather.temp < 15) {
       recs.add("Suhu udara cukup dingin, gunakan pakaian hangat");
     }
     if (weather.humidity < 40) {
       recs.add("Perbanyak minum air (udara kering)");
+    }
+
+    if (weather.condition.contains("rain") || weather.condition.contains("Rain") ){
+
+      recs.add("Waspada hujan, berhati-hati saat berkendara");
+      
+
     }
 
     if (weather.getRiskLevel == "Tinggi") {
