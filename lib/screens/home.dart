@@ -33,14 +33,6 @@ class HomeScreenState extends State<HomeScreen> {
     dataRefresh();
   }
 
-  void setHomeState(EnvData envDataFresh) {
-    setState(() {
-      envData = envDataFresh;
-      loading = false;
-      locationAvailable = true;
-    });
-  }
-
   void handleError(String status) async {
     switch (envData.status) {
       case "Data is Empty":
@@ -65,11 +57,15 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> initializeEnvironment({String? query, bool? something}) async {
-    final envData = await loadEnvironment(query: query);
-    if (envData.status != "Success") {
+    final envDataFresh = await loadEnvironment(query: query);
+    if (envDataFresh.status != "Success") {
       handleError(envData.status);
     } else {
-      setHomeState(envData);
+      setState(() {
+        envData = envDataFresh;
+        loading = false;
+        locationAvailable = true;
+      });
     }
   }
 
@@ -156,9 +152,6 @@ class HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 24),
                     Center(child: RiskMeter(weather: envData.weather)),
-
-                    // Center(child: Text("Risk Score: ${w.riskScore}")), // Debug
-                    
                     const SizedBox(height: 16),
                     EnvStats(weather: envData.weather),
                     const SizedBox(height: 24),

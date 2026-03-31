@@ -49,7 +49,7 @@ Future<EnvData> loadEnvironment({String? query, Function? response}) async {
       weather: Weather.emptyWeather,
     );
   } else {
-    const space = "                                          ";
+    const space = "                                  ";
     return EnvData(
       status: "Success",
       location:
@@ -59,8 +59,7 @@ Future<EnvData> loadEnvironment({String? query, Function? response}) async {
         uv: data["uv"],
         temp: data["temp"],
         humidity: data["humidity"],
-        condition: data["condition"]
-
+        condition: data["condition"],
       ),
     );
   }
@@ -118,7 +117,7 @@ class EnvironmentService {
         "localtime": data["location"]["localtime"],
         "region": data["location"]["region"],
         "country": data["location"]["country"],
-        "condition":data["current"]["condition"]["text"],
+        "condition": data["current"]["condition"]["text"],
         "temp": data["current"]["temp_c"].round(),
         "humidity": data["current"]["humidity"].round(),
         "uv": data["current"]["uv"].round(),

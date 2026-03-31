@@ -7,6 +7,11 @@ class RecommendationSection extends StatelessWidget {
   const RecommendationSection({super.key, required this.weather});
 
   List<String> get getRecommendations {
+    if (weather.riskScore == 0) {
+      debugPrint("yes");
+      return [];
+    }
+
     List<String> recs = [];
 
     if (weather.aqi > 150) {
@@ -31,11 +36,9 @@ class RecommendationSection extends StatelessWidget {
       recs.add("Perbanyak minum air (udara kering)");
     }
 
-    if (weather.condition.contains("rain") || weather.condition.contains("Rain") ){
-
+    if (weather.condition.contains("rain") ||
+        weather.condition.contains("Rain")) {
       recs.add("Waspada hujan, berhati-hati saat berkendara");
-      
-
     }
 
     if (weather.getRiskLevel == "Tinggi") {

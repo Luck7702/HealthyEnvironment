@@ -36,14 +36,3 @@ class EnvStatsColors {
   }
 }
 
-final ThemeData whiteTheme = ThemeData(
-  useMaterial3: true,
-  scaffoldBackgroundColor: const Color(0xFFEAF7EF),
-  colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
-);
-
-final ThemeData darkTheme = ThemeData(
-  useMaterial3: true,
-  scaffoldBackgroundColor: Color.fromARGB(255, 6, 29, 15),
-  colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
-);

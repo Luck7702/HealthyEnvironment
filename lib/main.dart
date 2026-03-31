@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:LingkunganSehat/screens/home.dart';
-import 'package:LingkunganSehat/config/app_config.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +13,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Lingkungan Sehat',
-      theme: AppConfig.currentTheme,
+      theme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFEAF7EF),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
+      ),
       home: const HomeScreen(),
     );
   }
