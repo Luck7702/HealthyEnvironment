@@ -1,6 +1,6 @@
 {
     "name": "Lingkungan Sehat",
-    "short_name": "LS",
+    "short_name": "Cek Cuaca",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
