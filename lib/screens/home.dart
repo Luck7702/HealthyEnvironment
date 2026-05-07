@@ -101,7 +101,9 @@ class HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
-              Share.share("Cek Aplikasi Ini", subject: 'Share');
+              Share.share(
+                "Coba cek aplikasi cuaca ini\nhttps://healthy-environment.vercel.app/",
+              );
             },
           ),
 
