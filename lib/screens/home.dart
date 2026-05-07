@@ -90,7 +90,7 @@ class HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Text(
-            "Enviroment App",
+            "LingkunganSehat",
             style: TextStyle(
               color: Color(0xFF2E7D32),
               fontWeight: FontWeight.bold,
