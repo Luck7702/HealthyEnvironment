@@ -95,9 +95,6 @@ class EnvironmentService {
           "&q=$query"
           "&aqi=yes";
 
-      debugPrint(url);
-      debugPrint(query);
-
       final response = await http.get(Uri.parse(url));
 
       debugPrint("${response.statusCode}");
