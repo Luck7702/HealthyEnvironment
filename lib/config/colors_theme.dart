@@ -1,38 +1,37 @@
 import 'package:flutter/material.dart';
 
+import 'app_theme.dart';
 import '../models/weather.dart';
 
 class RiskLevelColors {
   static Color getRiskColor(Weather weather) {
-    // Color for RiskMeter and RiskCard
     switch (weather.getRiskLevel) {
       case "Rendah":
-        return Colors.green;
+        return AppColors.green;
       case "Sedang":
-        return Colors.orange;
+        return AppColors.orange;
       default:
-        return Colors.red;
+        return AppColors.coral;
     }
   }
 }
 
 class EnvStatsColors {
   static Color getAqiAccent(int aqi) {
-    if (aqi >= 150) {return Colors.red;} 
-    else if (aqi >= 100) {return Colors.orange; }
-    return Colors.green;
+    if (aqi >= 150) return AppColors.coral;
+    if (aqi >= 100) return AppColors.orange;
+    return AppColors.green;
   }
 
-  static Color getUvAccent(int uv) {
-    if (uv >= 8) {return Colors.red;} 
-    else if (uv >= 4) {return Colors.orange;}
-    return Colors.green;
+  static Color getUvAccent(double uv) {
+    if (uv >= 8) return AppColors.coral;
+    if (uv >= 4) return AppColors.orange;
+    return AppColors.green;
   }
 
-  static Color getTempAccent(int temp){
-    if(temp >= 30){return Colors.red;}
-    else if(temp > 27){return Colors.orange;};
-    return Colors.green;
+  static Color getTempAccent(double temp) {
+    if (temp >= 30) return AppColors.coral;
+    if (temp > 27) return AppColors.orange;
+    return AppColors.green;
   }
 }
-
