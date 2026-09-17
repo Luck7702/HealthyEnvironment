@@ -1,0 +1,10 @@
+{
+  "name": "healthy-environment",
+  "private": true,
+  "version": "1.0.0",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "build": "bash scripts/vercel-build.sh",
+    "dev:api": "vercel dev --local-config vercel.dev.json --listen 3000"
+  }
+}
