@@ -45,3 +45,9 @@ app.*.map.json
 /android/app/release
 
 .env
+
+# FVM Version Cache
+.fvm/
+
+# Generated local state
+tmp/
