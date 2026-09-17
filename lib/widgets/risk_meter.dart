@@ -1,36 +1,55 @@
-import 'package:flutter/material.dart';
-import 'package:LingkunganSehat/config/colors_theme.dart';
 import 'dart:math';
 
-import 'package:LingkunganSehat/models/weather.dart';
+import 'package:flutter/material.dart';
 
-class RiskMeter extends StatelessWidget{
+import '../config/app_theme.dart';
+import '../config/colors_theme.dart';
+import '../models/weather.dart';
 
+class RiskMeter extends StatelessWidget {
   final Weather weather;
+  final double size;
 
-  Color get riskColor => RiskLevelColors.getRiskColor(weather);
-
-  const RiskMeter({super.key,required this.weather});
+  const RiskMeter({super.key, required this.weather, this.size = 280});
 
   @override
   Widget build(BuildContext context) {
+    final riskColor = RiskLevelColors.getRiskColor(weather);
     return SizedBox(
-      width: 220,
-      height: 220,
+      width: size,
+      height: size,
       child: CustomPaint(
-        painter: _CircleMeterPainter(progress: weather.riskScore, color: riskColor),
+        painter: _CircleMeterPainter(
+          progress: weather.riskScore,
+          color: riskColor,
+        ),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Risiko"),
+              Text(
+                'Risiko Saat Ini',
+                style: TextStyle(
+                  color: AppColors.muted,
+                  fontSize: size * .085,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 6),
               Text(
                 weather.getRiskLevel,
                 style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
                   color: riskColor,
+                  fontSize: size * .18,
+                  height: 1,
+                  fontWeight: FontWeight.w800,
                 ),
+              ),
+              const SizedBox(height: 7),
+              Icon(
+                Icons.air,
+                color: riskColor.withValues(alpha: .8),
+                size: size * .18,
               ),
             ],
           ),
@@ -49,30 +68,30 @@ class _CircleMeterPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final radius = size.width / 2;
-
-    final bgPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.2)
+    final radius = size.width / 2 - 10;
+    final strokeWidth = (size.width * .06).clamp(13.0, 17.0).toDouble();
+    final background = Paint()
+      ..color = const Color(0xFFE8EEEE)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 14;
-
-    final fgPaint = Paint()
+      ..strokeWidth = strokeWidth;
+    final foreground = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 14;
+      ..strokeWidth = strokeWidth;
 
-    canvas.drawCircle(center, radius - 10, bgPaint);
-
+    canvas.drawCircle(center, radius, background);
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - 10),
+      Rect.fromCircle(center: center, radius: radius),
       -pi / 2,
-      2 * pi * progress,
+      2 * pi * progress.clamp(0, 1),
       false,
-      fgPaint,
+      foreground,
     );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _CircleMeterPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
+  }
 }
