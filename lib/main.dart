@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:LingkunganSehat/screens/home.dart';
+import 'package:lingkungan_sehat/config/app_theme.dart';
+import 'package:lingkungan_sehat/config/theme_controller.dart';
+import 'package:lingkungan_sehat/screens/home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,15 +12,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Lingkungan Sehat',
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFEAF7EF),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E7D32)),
-      ),
-      home: const HomeScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: appThemeMode,
+      builder: (context, themeMode, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Lingkungan Sehat',
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeMode,
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }
