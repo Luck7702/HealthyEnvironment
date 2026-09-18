@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:lingkungan_sehat/config/app_theme.dart';
-import 'package:lingkungan_sehat/config/env.dart';
 import 'package:lingkungan_sehat/models/weather.dart';
 import 'package:lingkungan_sehat/screens/information.dart';
 import 'package:lingkungan_sehat/screens/settings.dart';
@@ -16,31 +15,35 @@ import 'package:lingkungan_sehat/widgets/recommendation_list.dart';
 import 'package:lingkungan_sehat/widgets/risk_meter.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final EnvironmentLoader? environmentLoader;
+
+  const HomeScreen({super.key, this.environmentLoader});
 
   @override
   State<HomeScreen> createState() => HomeScreenState();
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  EnvData envData = EnvData.preview;
+  EnvData envData = const EnvData(
+    location: '',
+    weather: Weather.emptyWeather,
+    status: EnvironmentStatus.empty,
+  );
   Timer? _refreshTimer;
-  bool loading = false;
-  bool locationAvailable = true;
+  bool loading = true;
+  bool refreshing = false;
   String? errorMessage;
+  int _environmentRequestId = 0;
 
   @override
   void initState() {
     super.initState();
 
-    if (Env.openWeatherKey.trim().isNotEmpty) {
-      loading = true;
-      initializeEnvironment(showLoading: false);
-      _refreshTimer = Timer.periodic(
-        const Duration(minutes: 5),
-        (_) => initializeEnvironment(showLoading: false),
-      );
-    }
+    initializeEnvironment();
+    _refreshTimer = Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => initializeEnvironment(showLoading: false),
+    );
   }
 
   @override
@@ -53,32 +56,28 @@ class HomeScreenState extends State<HomeScreen> {
     String? query,
     bool showLoading = true,
   }) async {
-    if (Env.openWeatherKey.trim().isEmpty) {
-      if (!mounted) return;
-      setState(() {
-        envData = EnvData.preview;
-        loading = false;
-        locationAvailable = true;
-        errorMessage = null;
-      });
-      return;
-    }
-
-    if (showLoading && mounted) {
+    final requestId = ++_environmentRequestId;
+    final hasData = envData.status == EnvironmentStatus.success;
+    if (showLoading && !hasData && mounted) {
       setState(() {
         loading = true;
+        refreshing = false;
         errorMessage = null;
       });
+    } else if (mounted) {
+      setState(() => refreshing = true);
     }
 
-    final freshData = await loadEnvironment(query: query);
-    if (!mounted) return;
+    final freshData = await (widget.environmentLoader ?? loadEnvironment)(
+      query: query,
+    );
+    if (!mounted || requestId != _environmentRequestId) return;
 
-    if (freshData.status == 'Success') {
+    if (freshData.status == EnvironmentStatus.success) {
       setState(() {
         envData = freshData;
         loading = false;
-        locationAvailable = true;
+        refreshing = false;
         errorMessage = null;
       });
       return;
@@ -86,20 +85,9 @@ class HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       loading = false;
-      locationAvailable = false;
-      errorMessage = _errorMessageFor(freshData.status);
+      refreshing = false;
+      errorMessage = environmentErrorMessage(freshData.status);
     });
-  }
-
-  String _errorMessageFor(String status) {
-    switch (status) {
-      case 'Location unavailable':
-        return 'Lokasi tidak tersedia. Periksa izin lokasi lalu coba lagi.';
-      case 'Failed to Connect':
-        return 'Koneksi gagal. Periksa internet lalu coba lagi.';
-      default:
-        return 'Data lingkungan belum tersedia. Coba lagi.';
-    }
   }
 
   void _openLocationSearch() {
@@ -158,7 +146,7 @@ class HomeScreenState extends State<HomeScreen> {
                     : 18.0;
                 final narrow = constraints.maxWidth < 520;
 
-                if (loading && envData.status != 'Preview') {
+                if (loading && envData.status != EnvironmentStatus.success) {
                   return _LoadingView(horizontalPadding: horizontalPadding);
                 }
 
@@ -181,10 +169,10 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                     SizedBox(height: narrow ? 18 : 29),
                     LocationBar(
-                      available: locationAvailable,
+                      available: envData.status == EnvironmentStatus.success,
                       location: envData.location,
                       updatedAt: envData.localTime,
-                      loading: loading,
+                      loading: loading || refreshing,
                       onRetry: () => initializeEnvironment(),
                       onTap: _openLocationSearch,
                     ),
@@ -462,6 +450,9 @@ class _RiskPanel extends StatelessWidget {
   }
 
   String _riskDescription(Weather weather) {
+    if (weather.riskState != RiskState.known) {
+      return weather.riskDescription;
+    }
     switch (weather.getRiskLevel) {
       case 'Rendah':
         return 'Kondisi cukup baik, tetap perhatikan perubahan cuaca.';

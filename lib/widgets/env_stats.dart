@@ -19,9 +19,11 @@ class EnvStats extends StatelessWidget {
         final cards = [
           _StatCard(
             label: 'AQI',
-            value: '${weather.aqi}',
+            value: weather.aqi?.toString() ?? '—',
             status: _aqiStatus(weather.aqi),
-            description: weather.aqi >= 100
+            description: weather.aqi == null
+                ? 'Data kualitas udara\nbelum tersedia.'
+                : weather.aqi! >= 100
                 ? 'Kualitas udara\nperlu diperhatikan.'
                 : 'Kualitas udara\ntergolong baik.',
             icon: Icons.cloud,
@@ -31,15 +33,17 @@ class EnvStats extends StatelessWidget {
               context,
               title: 'Apa itu AQI?',
               message:
-                  'AQI adalah indeks yang menunjukkan tingkat kebersihan atau pencemaran udara. Semakin tinggi angkanya, semakin besar perhatian yang dibutuhkan.',
+                  'AQI adalah perkiraan kualitas udara dari konsentrasi PM saat ini, bukan AQI harian resmi. Semakin tinggi angkanya, semakin besar perhatian yang dibutuhkan.',
               icon: Icons.cloud_outlined,
             ),
           ),
           _StatCard(
             label: 'UV',
-            value: weather.uv.toStringAsFixed(1),
+            value: weather.uv?.toStringAsFixed(1) ?? '—',
             status: _uvStatus(weather.uv),
-            description: weather.uv >= 6
+            description: weather.uv == null
+                ? 'Data paparan UV\nbelum tersedia.'
+                : weather.uv! >= 6
                 ? 'Risiko paparan\nUV tinggi.'
                 : 'Risiko paparan\nUV rendah.',
             icon: Icons.wb_sunny_outlined,
@@ -55,9 +59,13 @@ class EnvStats extends StatelessWidget {
           ),
           _StatCard(
             label: 'Suhu',
-            value: '${weather.temp.toStringAsFixed(1)}°C',
+            value: weather.temp == null
+                ? '—'
+                : '${weather.temp!.toStringAsFixed(1)}°C',
             status: _temperatureStatus(weather.temp),
-            description: weather.temp >= 30
+            description: weather.temp == null
+                ? 'Data suhu udara\nbelum tersedia.'
+                : weather.temp! >= 30
                 ? 'Cuaca panas,\njaga hidrasi.'
                 : 'Suhu terasa\nnyaman.',
             icon: Icons.thermostat_outlined,
@@ -112,20 +120,23 @@ class EnvStats extends StatelessWidget {
     );
   }
 
-  static String _aqiStatus(int value) {
+  static String _aqiStatus(int? value) {
+    if (value == null) return 'Belum tersedia';
     if (value >= 150) return 'Tidak sehat';
     if (value >= 100) return 'Sedang';
     return 'Baik';
   }
 
-  static String _uvStatus(double value) {
+  static String _uvStatus(double? value) {
+    if (value == null) return 'Belum tersedia';
     if (value >= 8) return 'Sangat tinggi';
     if (value >= 6) return 'Tinggi';
     if (value >= 3) return 'Sedang';
     return 'Rendah';
   }
 
-  static String _temperatureStatus(double value) {
+  static String _temperatureStatus(double? value) {
+    if (value == null) return 'Belum tersedia';
     if (value >= 30) return 'Panas';
     if (value >= 24) return 'Hangat';
     return 'Sejuk';

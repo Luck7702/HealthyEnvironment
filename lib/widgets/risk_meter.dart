@@ -45,6 +45,17 @@ class RiskMeter extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
+              if (weather.riskState == RiskState.incomplete) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Data belum lengkap',
+                  style: TextStyle(
+                    color: AppColors.muted,
+                    fontSize: size * .052,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               const SizedBox(height: 7),
               Icon(
                 Icons.air,

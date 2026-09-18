@@ -9,66 +9,58 @@ class RecommendationSection extends StatelessWidget {
   const RecommendationSection({super.key, required this.weather});
 
   List<_Recommendation> get _recommendations {
-    final result = <_Recommendation>[];
-
-    if (weather.aqi >= 100) {
-      result.add(
+    final values = weather.recommendations;
+    if (values.isEmpty) {
+      return [
         _Recommendation(
-          icon: Icons.groups_outlined,
+          icon: weather.riskState == RiskState.unknown
+              ? Icons.hourglass_empty_rounded
+              : Icons.favorite_outline,
           color: AppColors.green,
           background: AppColors.greenSoft,
-          text: weather.aqi >= 150
-              ? 'Kurangi aktivitas luar saat kualitas udara memburuk.'
-              : 'Kelompok sensitif sebaiknya kurangi\naktivitas luar.',
+          text: weather.riskState == RiskState.unknown
+              ? 'Saran belum tersedia sampai data lingkungan diterima.'
+              : 'Kondisi relatif aman. Tetap jaga kesehatan.',
         ),
+      ];
+    }
+    return values.map(_recommendationFor).toList();
+  }
+
+  _Recommendation _recommendationFor(String text) {
+    final normalized = text.toLowerCase();
+    if (normalized.contains('uv') || normalized.contains('matahari')) {
+      return _Recommendation(
+        icon: Icons.wb_sunny_outlined,
+        color: AppColors.orange,
+        background: AppColors.orangeSoft,
+        text: text,
       );
     }
-
-    if (weather.uv >= 6) {
-      result.add(
-        const _Recommendation(
-          icon: Icons.wb_sunny_outlined,
-          color: AppColors.orange,
-          background: AppColors.orangeSoft,
-          text: 'Gunakan pelindung UV saat berada di luar.',
-        ),
+    if (normalized.contains('hujan') ||
+        normalized.contains('petir') ||
+        normalized.contains('berkendara')) {
+      return _Recommendation(
+        icon: Icons.cloudy_snowing,
+        color: AppColors.blue,
+        background: AppColors.blueSoft,
+        text: text,
       );
     }
-
-    if (weather.temp >= 30 || weather.humidity < 40) {
-      result.add(
-        const _Recommendation(
-          icon: Icons.water_drop_outlined,
-          color: AppColors.blue,
-          background: AppColors.blueSoft,
-          text: 'Minum cukup dan beristirahat dari panas.',
-        ),
+    if (normalized.contains('minum') || normalized.contains('panas')) {
+      return _Recommendation(
+        icon: Icons.water_drop_outlined,
+        color: AppColors.blue,
+        background: AppColors.blueSoft,
+        text: text,
       );
     }
-
-    if (weather.condition.toLowerCase().contains('rain')) {
-      result.add(
-        const _Recommendation(
-          icon: Icons.cloudy_snowing,
-          color: AppColors.blue,
-          background: AppColors.blueSoft,
-          text: 'Waspadai hujan. Berhati-hati saat berkendara.',
-        ),
-      );
-    }
-
-    if (result.isEmpty) {
-      result.add(
-        const _Recommendation(
-          icon: Icons.favorite_outline,
-          color: AppColors.green,
-          background: AppColors.greenSoft,
-          text: 'Kondisi relatif aman. Tetap jaga kesehatan.',
-        ),
-      );
-    }
-
-    return result;
+    return _Recommendation(
+      icon: Icons.groups_outlined,
+      color: AppColors.green,
+      background: AppColors.greenSoft,
+      text: text,
+    );
   }
 
   @override
@@ -91,7 +83,7 @@ class RecommendationSection extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             Text(
-              'Risiko berdasarkan data lingkungan saat ini.',
+              weather.riskDescription,
               style: TextStyle(
                 color: AppColors.muted,
                 fontSize: narrow ? 16 : 19,
