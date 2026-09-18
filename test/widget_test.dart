@@ -42,6 +42,35 @@ void main() {
     expect(find.byKey(const Key('recommendations-list')), findsOneWidget);
   });
 
+  testWidgets('smoky haze with complete core readings is not incomplete', (
+    WidgetTester tester,
+  ) async {
+    const smokyHazeEnvironment = EnvData(
+      location: 'Karetsemanggi',
+      localTime: '22:16',
+      weather: Weather(
+        aqi: 156,
+        uv: 0,
+        temp: 28.6,
+        humidity: 66,
+        condition: 'Smoky haze',
+        conditionCode: 1036,
+      ),
+      status: EnvironmentStatus.success,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeScreen(
+          environmentLoader: ({String? query}) async => smokyHazeEnvironment,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tinggi'), findsOneWidget);
+    expect(find.text('Data belum lengkap'), findsNothing);
+  });
+
   for (final size in <Size>[
     const Size(320, 700),
     const Size(375, 667),

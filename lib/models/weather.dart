@@ -46,32 +46,80 @@ class Weather {
     final text = condition?.toLowerCase() ?? '';
     final code = conditionCode;
     if (code != null) {
-      if ({1087, 1273, 1276, 1282}.contains(code)) return 1;
+      if ({
+        1087,
+        1117,
+        1171,
+        1195,
+        1201,
+        1225,
+        1246,
+        1252,
+        1258,
+        1264,
+        1273,
+        1276,
+        1279,
+        1282,
+      }.contains(code)) {
+        return 1;
+      }
       if ({
         1063,
+        1066,
+        1069,
+        1072,
+        1114,
         1150,
         1153,
+        1168,
         1180,
         1183,
         1186,
         1189,
         1192,
-        1195,
+        1198,
+        1204,
+        1207,
+        1210,
+        1213,
+        1216,
+        1219,
+        1222,
+        1237,
         1240,
         1243,
-        1246,
+        1249,
+        1255,
+        1261,
       }.contains(code)) {
         return 0.5;
       }
-      if (code == 1279) return 0.75;
       if ({1000, 1003, 1006, 1009, 1030, 1135, 1147}.contains(code)) return 0;
     }
-    if (RegExp(r'thunder|petir|lightning').hasMatch(text)) return 1;
+    if (_hasThunder || text.contains('blizzard')) return 1;
     if (RegExp(r'rain|hujan|drizzle|gerimis|sleet|salju|snow').hasMatch(text)) {
       return 0.5;
     }
+    if (_hasSmokeOrHaze) return 0.5;
+    if (RegExp(
+      r'clear|sunny|cloud|overcast|mist|fog|cerah|berawan|kabut',
+    ).hasMatch(text)) {
+      return 0;
+    }
     if (text.isEmpty || text == 'not specified') return null;
     return null;
+  }
+
+  bool get _hasThunder {
+    if ({1087, 1273, 1276, 1279, 1282}.contains(conditionCode)) return true;
+    final text = condition?.toLowerCase() ?? '';
+    return RegExp(r'thunder|petir|lightning').hasMatch(text);
+  }
+
+  bool get _hasSmokeOrHaze {
+    final text = condition?.toLowerCase() ?? '';
+    return RegExp(r'smoke|smoky|haze|asap').hasMatch(text);
   }
 
   double get riskScore {
@@ -81,13 +129,7 @@ class Weather {
 
   RiskState get riskState {
     if (componentSeverity.isEmpty) return RiskState.unknown;
-    final count = [
-      aqi,
-      uv,
-      temp,
-      humidity,
-    ].where((value) => value != null).length;
-    return count == 4 && _conditionSeverity != null
+    return aqi != null && uv != null && temp != null
         ? RiskState.known
         : RiskState.incomplete;
   }
@@ -145,10 +187,16 @@ class Weather {
       recs.add('Minum cukup karena udara kering.');
     }
     final severity = _conditionSeverity;
-    if (severity != null && severity >= 1) {
+    if (_hasThunder) {
       recs.add('Berlindung di dalam saat ada petir.');
+    } else if (_hasSmokeOrHaze) {
+      if (aqi == null || aqi! < 51) {
+        recs.add(
+          'Kurangi aktivitas luar dan gunakan masker saat udara berasap.',
+        );
+      }
     } else if (severity != null && severity >= 0.5) {
-      recs.add('Waspadai hujan; berhati-hati saat berkendara.');
+      recs.add('Waspadai cuaca buruk; berhati-hati saat berkendara.');
     }
     return recs.toSet().toList();
   }
