@@ -119,9 +119,13 @@ class Weather {
     }
     if (uv != null) {
       if (uv! >= 8) {
-        recs.add('Hindari matahari tengah hari; gunakan pelindung UV.');
+        recs.add(
+          'Cari tempat teduh; gunakan jaket lengan panjang dan tabir surya.',
+        );
       } else if (uv! >= 3) {
-        recs.add('Gunakan pelindung UV saat berada di luar.');
+        recs.add(
+          'Gunakan jaket lengan panjang dan tabir surya saat berkendara.',
+        );
       }
     }
     if (temp != null) {

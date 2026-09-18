@@ -5,8 +5,19 @@ import '../models/weather.dart';
 
 class RecommendationSection extends StatelessWidget {
   final Weather weather;
+  final bool compact;
+  final bool comfortable;
+  final bool minimalDashboard;
+  final Widget? footer;
 
-  const RecommendationSection({super.key, required this.weather});
+  const RecommendationSection({
+    super.key,
+    required this.weather,
+    this.compact = false,
+    this.comfortable = false,
+    this.minimalDashboard = false,
+    this.footer,
+  });
 
   List<_Recommendation> get _recommendations {
     final values = weather.recommendations;
@@ -65,9 +76,13 @@ class RecommendationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final recommendations = _recommendations;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final narrow = constraints.maxWidth < 520;
+        final pinFooter = footer != null && constraints.maxHeight >= 150;
+        final itemCount =
+            recommendations.length + (!pinFooter && footer != null ? 1 : 0);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,31 +91,74 @@ class RecommendationSection extends StatelessWidget {
               'Saran untuk Anda',
               style: TextStyle(
                 color: AppColors.forest,
-                fontSize: narrow ? 26 : 31,
-                height: 1.1,
+                fontSize: minimalDashboard
+                    ? comfortable
+                          ? 21
+                          : 19
+                    : compact
+                    ? comfortable
+                          ? 21
+                          : 19
+                    : 26,
+                height: 1.05,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 5),
+            SizedBox(
+              height: minimalDashboard
+                  ? 6
+                  : compact
+                  ? 2
+                  : 4,
+            ),
             Text(
               weather.riskDescription,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: AppColors.muted,
-                fontSize: narrow ? 16 : 19,
-                height: 1.2,
+                fontSize: minimalDashboard
+                    ? comfortable
+                          ? 13
+                          : 12
+                    : compact
+                    ? comfortable
+                          ? 12
+                          : 11
+                    : 15,
+                height: 1.15,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 15),
-            ..._recommendations.map(
-              (recommendation) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _RecommendationTile(
-                  recommendation: recommendation,
-                  narrow: narrow,
-                ),
+            SizedBox(
+              height: minimalDashboard
+                  ? 12
+                  : compact
+                  ? 6
+                  : 9,
+            ),
+            Expanded(
+              child: ListView.separated(
+                key: const Key('recommendations-list'),
+                padding: EdgeInsets.zero,
+                physics: const ClampingScrollPhysics(),
+                itemCount: itemCount,
+                separatorBuilder: (_, _) => SizedBox(height: compact ? 6 : 8),
+                itemBuilder: (context, index) {
+                  if (index == recommendations.length) return footer!;
+                  return _RecommendationTile(
+                    recommendation: recommendations[index],
+                    compact: compact,
+                    comfortable: comfortable,
+                    minimal: minimalDashboard,
+                  );
+                },
               ),
             ),
+            if (pinFooter) ...[
+              SizedBox(height: compact ? (comfortable ? 10 : 6) : 8),
+              footer!,
+            ],
           ],
         );
       },
@@ -124,33 +182,69 @@ class _Recommendation {
 
 class _RecommendationTile extends StatelessWidget {
   final _Recommendation recommendation;
-  final bool narrow;
+  final bool compact;
+  final bool comfortable;
+  final bool minimal;
 
   const _RecommendationTile({
     required this.recommendation,
-    required this.narrow,
+    required this.compact,
+    required this.comfortable,
+    required this.minimal,
   });
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(compact ? 16 : 19);
     return Material(
       color: AppColors.card,
-      borderRadius: BorderRadius.circular(21),
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: minimal
+            ? const BorderSide(color: AppColors.greenBorder)
+            : BorderSide.none,
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: radius,
         onTap: () {},
         child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: narrow ? 72 : 88),
+          constraints: BoxConstraints(
+            minHeight: compact
+                ? minimal
+                      ? comfortable
+                            ? 76
+                            : 68
+                      : comfortable
+                      ? 60
+                      : 52
+                : 68,
+          ),
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: narrow ? 14 : 23,
-              vertical: narrow ? 12 : 14,
+              horizontal: compact ? 10 : 18,
+              vertical: minimal
+                  ? comfortable
+                        ? 11
+                        : 9
+                  : compact
+                  ? comfortable
+                        ? 8
+                        : 6
+                  : 9,
             ),
             child: Row(
               children: [
                 Container(
-                  width: narrow ? 48 : 57,
-                  height: narrow ? 48 : 57,
+                  width: compact
+                      ? comfortable
+                            ? 40
+                            : 36
+                      : 46,
+                  height: compact
+                      ? comfortable
+                            ? 40
+                            : 36
+                      : 46,
                   decoration: BoxDecoration(
                     color: recommendation.background,
                     shape: BoxShape.circle,
@@ -158,32 +252,43 @@ class _RecommendationTile extends StatelessWidget {
                   child: Icon(
                     recommendation.icon,
                     color: recommendation.color,
-                    size: narrow ? 31 : 38,
+                    size: compact
+                        ? comfortable
+                              ? 25
+                              : 23
+                        : 30,
                   ),
                 ),
-                SizedBox(width: narrow ? 14 : 52),
+                SizedBox(width: compact ? 9 : 18),
                 Expanded(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 570),
                     child: Text(
-                      narrow
+                      compact
                           ? recommendation.text.replaceAll('\n', ' ')
                           : recommendation.text,
+                      maxLines: compact ? 2 : 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: AppColors.ink,
-                        fontSize: narrow ? 17 : 22,
-                        height: 1.2,
+                        fontSize: compact
+                            ? comfortable
+                                  ? 13
+                                  : 12
+                            : 16,
+                        height: 1.15,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(width: narrow ? 8 : 12),
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppColors.muted,
-                  size: 29,
-                ),
+                SizedBox(width: compact ? 4 : 8),
+                if (!minimal)
+                  Icon(
+                    Icons.chevron_right,
+                    color: AppColors.muted,
+                    size: compact ? 20 : 25,
+                  ),
               ],
             ),
           ),

@@ -46,6 +46,9 @@ void showInputPrompt(
 }
 
 class LocationBar extends StatelessWidget {
+  final bool compact;
+  final bool comfortable;
+  final bool minimal;
   final bool available;
   final String location;
   final String updatedAt;
@@ -55,6 +58,9 @@ class LocationBar extends StatelessWidget {
 
   const LocationBar({
     super.key,
+    this.compact = false,
+    this.comfortable = false,
+    this.minimal = false,
     required this.available,
     required this.location,
     required this.updatedAt,
@@ -73,23 +79,87 @@ class LocationBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(25),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final narrow = constraints.maxWidth < 500;
+            final narrow = compact || constraints.maxWidth < 500;
             final title = available && location.isNotEmpty
                 ? location
+                : narrow
+                ? 'Pilih lokasi'
                 : 'Lokasi belum tersedia';
             final subtitle = available && updatedAt.isNotEmpty
                 ? narrow
                       ? 'Diperbarui $updatedAt'
                       : 'Diperbarui hari ini, $updatedAt'
+                : narrow
+                ? 'Cari kota atau gunakan lokasi'
                 : 'Aktifkan lokasi untuk melihat kondisi sekitar';
-            final iconSize = narrow ? 56.0 : 70.0;
+            final iconSize = narrow
+                ? comfortable
+                      ? 46.0
+                      : 42.0
+                : 58.0;
 
-            return ConstrainedBox(
-              constraints: BoxConstraints(minHeight: narrow ? 92 : 106),
+            if (minimal) {
+              return SizedBox(
+                height: comfortable ? 58 : 54,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: AppColors.forest,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: comfortable ? 17 : 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      if (loading)
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.green,
+                          ),
+                        )
+                      else
+                        Text(
+                          available && updatedAt.isNotEmpty
+                              ? updatedAt
+                              : 'Pilih lokasi',
+                          style: TextStyle(
+                            color: AppColors.muted,
+                            fontSize: comfortable ? 14 : 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return SizedBox(
+              height: narrow
+                  ? comfortable
+                        ? 72
+                        : 64
+                  : 82,
               child: Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: narrow ? 16 : 20,
-                  vertical: narrow ? 12 : 14,
+                  horizontal: narrow ? 10 : 18,
+                  vertical: narrow ? 8 : 12,
                 ),
                 child: Row(
                   children: [
@@ -103,10 +173,10 @@ class LocationBar extends StatelessWidget {
                       child: Icon(
                         Icons.location_on,
                         color: AppColors.forest,
-                        size: narrow ? 32 : 39,
+                        size: narrow ? 25 : 33,
                       ),
                     ),
-                    SizedBox(width: narrow ? 12 : 15),
+                    SizedBox(width: narrow ? 9 : 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,19 +188,27 @@ class LocationBar extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: AppColors.ink,
-                              fontSize: narrow ? 22 : 28,
+                              fontSize: narrow
+                                  ? comfortable
+                                        ? 18
+                                        : 16
+                                  : 23,
                               height: 1.1,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: narrow ? 2 : 4),
                           Text(
                             subtitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: AppColors.muted,
-                              fontSize: narrow ? 14 : 18,
+                              fontSize: narrow
+                                  ? comfortable
+                                        ? 12
+                                        : 11
+                                  : 15,
                               height: 1.15,
                               fontWeight: FontWeight.w500,
                             ),
@@ -138,15 +216,15 @@ class LocationBar extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(width: narrow ? 8 : 12),
+                    SizedBox(width: narrow ? 5 : 12),
                     if (narrow)
                       IconButton(
                         onPressed: loading ? null : onRetry,
                         tooltip: 'Perbarui data',
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints.tightFor(
-                          width: 48,
-                          height: 48,
+                        constraints: BoxConstraints.tightFor(
+                          width: comfortable ? 44 : 40,
+                          height: comfortable ? 44 : 40,
                         ),
                         style: IconButton.styleFrom(
                           backgroundColor: AppColors.greenSoft,
@@ -161,7 +239,7 @@ class LocationBar extends StatelessWidget {
                                   color: AppColors.green,
                                 ),
                               )
-                            : const Icon(Icons.refresh_rounded, size: 32),
+                            : const Icon(Icons.refresh_rounded, size: 25),
                       )
                     else
                       TextButton.icon(

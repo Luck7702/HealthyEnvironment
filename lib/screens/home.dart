@@ -8,6 +8,7 @@ import 'package:lingkungan_sehat/models/weather.dart';
 import 'package:lingkungan_sehat/screens/information.dart';
 import 'package:lingkungan_sehat/screens/settings.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
+import 'package:lingkungan_sehat/services/location_preferences.dart';
 import 'package:lingkungan_sehat/widgets/brand_mark.dart';
 import 'package:lingkungan_sehat/widgets/env_stats.dart';
 import 'package:lingkungan_sehat/widgets/location_bar.dart';
@@ -39,7 +40,7 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    initializeEnvironment();
+    initializeEnvironment(query: readSavedLocation());
     _refreshTimer = Timer.periodic(
       const Duration(minutes: 5),
       (_) => initializeEnvironment(showLoading: false),
@@ -74,6 +75,9 @@ class HomeScreenState extends State<HomeScreen> {
     if (!mounted || requestId != _environmentRequestId) return;
 
     if (freshData.status == EnvironmentStatus.success) {
+      if (query != null && query.trim().isNotEmpty) {
+        saveLocation(query.trim());
+      }
       setState(() {
         envData = freshData;
         loading = false;
@@ -131,44 +135,94 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ),
         child: SafeArea(
-          child: RefreshIndicator(
-            color: AppColors.green,
-            backgroundColor: AppColors.card,
-            onRefresh: () => initializeEnvironment(),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final horizontalPadding = constraints.maxWidth >= 1200
-                    ? (constraints.maxWidth - 1120) / 2
-                    : constraints.maxWidth >= 760
-                    ? 44.0
-                    : constraints.maxWidth >= 520
-                    ? 28.0
-                    : 18.0;
-                final narrow = constraints.maxWidth < 520;
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final phone = constraints.maxWidth < 600;
+              final compact = constraints.maxWidth < 900;
+              final shortPhone = phone && constraints.maxHeight < 740;
+              final tallPhone = phone && constraints.maxHeight >= 860;
+              final horizontalPadding = constraints.maxWidth >= 1200
+                  ? (constraints.maxWidth - 1120) / 2
+                  : constraints.maxWidth >= 760
+                  ? 44.0
+                  : constraints.maxWidth >= 520
+                  ? 28.0
+                  : 12.0;
+              final verticalPadding = phone
+                  ? shortPhone
+                        ? 6.0
+                        : tallPhone
+                        ? 12.0
+                        : 8.0
+                  : 12.0;
+              final gap = phone
+                  ? shortPhone
+                        ? 5.0
+                        : tallPhone
+                        ? 10.0
+                        : 7.0
+                  : 10.0;
+              final riskHeight = phone
+                  ? shortPhone
+                        ? 145.0
+                        : tallPhone
+                        ? 230.0
+                        : 190.0
+                  : constraints.maxHeight < 800
+                  ? 195.0
+                  : 235.0;
+              final statsHeight = phone
+                  ? shortPhone
+                        ? 96.0
+                        : tallPhone
+                        ? 132.0
+                        : 116.0
+                  : constraints.maxHeight < 800
+                  ? 110.0
+                  : 126.0;
 
-                if (loading && envData.status != EnvironmentStatus.success) {
-                  return _LoadingView(horizontalPadding: horizontalPadding);
-                }
+              final mobileRiskSize = shortPhone
+                  ? 154.0
+                  : tallPhone
+                  ? 220.0
+                  : 188.0;
+              final mobileStatsHeight = shortPhone
+                  ? 88.0
+                  : tallPhone
+                  ? 108.0
+                  : 98.0;
 
-                return ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    horizontalPadding,
-                    18,
-                    horizontalPadding,
-                    16,
-                  ),
+              if (loading && envData.status != EnvironmentStatus.success) {
+                return _LoadingView(
+                  horizontalPadding: horizontalPadding,
+                  verticalPadding: verticalPadding,
+                  compact: phone,
+                  riskHeight: riskHeight,
+                );
+              }
+
+              return Padding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  verticalPadding,
+                  horizontalPadding,
+                  verticalPadding,
+                ),
+                child: Column(
                   children: [
                     _PageHeader(
-                      compact: constraints.maxWidth < 760,
-                      narrow: narrow,
-                      stacked: constraints.maxWidth < 380,
+                      compact: compact,
+                      narrow: phone,
+                      comfortable: tallPhone,
                       onShare: _share,
                       onInformation: _openInformation,
                       onSettings: _openSettings,
                     ),
-                    SizedBox(height: narrow ? 18 : 29),
+                    SizedBox(height: gap),
                     LocationBar(
+                      compact: phone,
+                      comfortable: tallPhone,
+                      minimal: phone,
                       available: envData.status == EnvironmentStatus.success,
                       location: envData.location,
                       updatedAt: envData.localTime,
@@ -177,33 +231,87 @@ class HomeScreenState extends State<HomeScreen> {
                       onTap: _openLocationSearch,
                     ),
                     if (errorMessage != null) ...[
-                      const SizedBox(height: 10),
+                      SizedBox(height: gap),
                       _InlineError(
+                        compact: phone,
                         message: errorMessage!,
                         onRetry: () => initializeEnvironment(),
+                        onChooseLocation: _openLocationSearch,
                       ),
                     ],
-                    const SizedBox(height: 16),
-                    _RiskPanel(
-                      weather: envData.weather,
-                      maxWidth: constraints.maxWidth - (horizontalPadding * 2),
-                    ),
-                    const SizedBox(height: 31),
-                    _SectionHeading(
-                      title: 'Kondisi Lingkungan Saat Ini',
-                      actionLabel: 'Lihat detail',
-                      onAction: _openInformation,
-                    ),
-                    const SizedBox(height: 14),
-                    EnvStats(weather: envData.weather),
-                    const SizedBox(height: 28),
-                    RecommendationSection(weather: envData.weather),
-                    const SizedBox(height: 2),
-                    const _ReassuranceBanner(),
+                    if (phone) ...[
+                      SizedBox(height: shortPhone ? 6 : 10),
+                      SizedBox(
+                        height: mobileRiskSize,
+                        child: Center(
+                          child: RiskMeter(
+                            weather: envData.weather,
+                            size: mobileRiskSize,
+                            label: 'Risiko',
+                            showIcon: false,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: shortPhone ? 8 : 14),
+                      SizedBox(
+                        height: mobileStatsHeight,
+                        child: EnvStats(
+                          weather: envData.weather,
+                          compactDashboard: true,
+                          comfortableDashboard: tallPhone,
+                          minimalDashboard: true,
+                          cardHeight: mobileStatsHeight,
+                        ),
+                      ),
+                      SizedBox(height: shortPhone ? 12 : 20),
+                      Expanded(
+                        child: RecommendationSection(
+                          weather: envData.weather,
+                          compact: true,
+                          comfortable: tallPhone,
+                          minimalDashboard: true,
+                        ),
+                      ),
+                    ] else ...[
+                      SizedBox(height: gap),
+                      _RiskPanel(
+                        weather: envData.weather,
+                        height: riskHeight,
+                        compact: false,
+                        comfortable: false,
+                      ),
+                      const SizedBox(height: 12),
+                      _SectionHeading(
+                        compact: false,
+                        comfortable: false,
+                        title: 'Kondisi Lingkungan Saat Ini',
+                        actionLabel: 'Lihat detail',
+                        onAction: _openInformation,
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: statsHeight,
+                        child: EnvStats(
+                          weather: envData.weather,
+                          compactDashboard: statsHeight < 120,
+                          cardHeight: statsHeight,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: RecommendationSection(
+                          weather: envData.weather,
+                          footer: const _ReassuranceBanner(
+                            compact: false,
+                            comfortable: false,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -214,7 +322,7 @@ class HomeScreenState extends State<HomeScreen> {
 class _PageHeader extends StatelessWidget {
   final bool compact;
   final bool narrow;
-  final bool stacked;
+  final bool comfortable;
   final VoidCallback onShare;
   final VoidCallback onInformation;
   final VoidCallback onSettings;
@@ -222,7 +330,7 @@ class _PageHeader extends StatelessWidget {
   const _PageHeader({
     required this.compact,
     required this.narrow,
-    required this.stacked,
+    required this.comfortable,
     required this.onShare,
     required this.onInformation,
     required this.onSettings,
@@ -231,35 +339,43 @@ class _PageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final markSize = narrow
-        ? 46.0
+        ? comfortable
+              ? 38.0
+              : 34.0
         : compact
-        ? 58.0
-        : 82.0;
-    final titleSize = narrow
-        ? 18.0
-        : compact
-        ? 22.0
-        : 36.0;
-    final subtitleSize = narrow
-        ? 11.0
-        : compact
-        ? 13.0
-        : 20.0;
-    final buttonSize = narrow
         ? 44.0
+        : 62.0;
+    final titleSize = narrow
+        ? comfortable
+              ? 17.0
+              : 15.5
         : compact
-        ? 50.0
-        : 70.0;
+        ? 20.0
+        : 30.0;
+    final subtitleSize = narrow
+        ? 10.0
+        : compact
+        ? 12.0
+        : 16.0;
+    final buttonSize = narrow
+        ? comfortable
+              ? 42.0
+              : 38.0
+        : compact
+        ? 44.0
+        : 56.0;
     final iconSize = narrow
+        ? comfortable
+              ? 21.0
+              : 19.0
+        : compact
         ? 21.0
-        : compact
-        ? 24.0
-        : 32.0;
+        : 27.0;
     final actionGap = narrow
-        ? 5.0
+        ? 3.0
         : compact
-        ? 7.0
-        : 19.0;
+        ? 5.0
+        : 12.0;
 
     final brand = Row(
       children: [
@@ -280,20 +396,20 @@ class _PageHeader extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              SizedBox(height: narrow ? 4 : 6),
-              Text(
-                narrow
-                    ? 'Lingkungan lebih sehat'
-                    : 'Lingkungan lebih sehat, hidup lebih baik',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: AppColors.muted,
-                  fontSize: subtitleSize,
-                  height: 1,
-                  fontWeight: FontWeight.w500,
+              if (!compact) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Lingkungan lebih sehat, hidup lebih baik',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.muted,
+                    fontSize: subtitleSize,
+                    height: 1,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -328,17 +444,6 @@ class _PageHeader extends StatelessWidget {
         ),
       ],
     );
-
-    if (stacked) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          brand,
-          const SizedBox(height: 10),
-          Align(alignment: Alignment.centerRight, child: actions),
-        ],
-      );
-    }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -389,55 +494,78 @@ class _HeaderAction extends StatelessWidget {
 
 class _RiskPanel extends StatelessWidget {
   final Weather weather;
-  final double maxWidth;
+  final double height;
+  final bool compact;
+  final bool comfortable;
 
-  const _RiskPanel({required this.weather, required this.maxWidth});
+  const _RiskPanel({
+    required this.weather,
+    required this.height,
+    required this.compact,
+    required this.comfortable,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final narrow = maxWidth < 520;
-    final panelHeight = narrow
-        ? (maxWidth * .88).clamp(328.0, 350.0).toDouble()
-        : (maxWidth * .465).clamp(370.0, 408.0).toDouble();
-    final meterSize = narrow
-        ? (maxWidth * .5).clamp(188.0, 210.0).toDouble()
-        : (maxWidth * .32).clamp(215.0, 285.0).toDouble();
+    final meterSize = compact
+        ? (height * .62).clamp(100.0, comfortable ? 148.0 : 126.0).toDouble()
+        : (height * .72).clamp(138.0, 170.0).toDouble();
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(27),
       child: Container(
-        height: panelHeight,
+        height: height,
         color: AppColors.card,
         child: Stack(
           fit: StackFit.expand,
           children: [
             Image.asset(
               'assets/illustrations/risk-landscape.png',
-              fit: BoxFit.cover,
+              fit: compact ? BoxFit.fill : BoxFit.cover,
               alignment: Alignment.bottomCenter,
             ),
             Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: EdgeInsets.only(top: narrow ? 13 : 18),
+                padding: EdgeInsets.only(top: compact ? 5 : 8),
                 child: RiskMeter(weather: weather, size: meterSize),
               ),
             ),
             Positioned(
-              left: narrow ? 16 : 26,
-              right: narrow ? 16 : 26,
-              bottom: narrow ? 17 : 24,
+              left: compact ? 10 : 20,
+              right: compact ? 10 : 20,
+              bottom: compact ? 8 : 12,
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 570),
-                  child: Text(
-                    _riskDescription(weather),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.ink,
-                      fontSize: narrow ? 17.5 : 23,
-                      height: 1.25,
-                      fontWeight: FontWeight.w500,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: AppColors.card.withValues(
+                        alpha: compact ? .78 : .6,
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: compact ? 8 : 12,
+                        vertical: compact ? (comfortable ? 5 : 3) : 4,
+                      ),
+                      child: Text(
+                        _riskDescription(weather),
+                        textAlign: TextAlign.center,
+                        maxLines: compact ? 2 : 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.ink,
+                          fontSize: compact
+                              ? comfortable
+                                    ? 13
+                                    : 11.5
+                              : 15,
+                          height: 1.15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -465,11 +593,15 @@ class _RiskPanel extends StatelessWidget {
 }
 
 class _SectionHeading extends StatelessWidget {
+  final bool compact;
+  final bool comfortable;
   final String title;
   final String actionLabel;
   final VoidCallback onAction;
 
   const _SectionHeading({
+    required this.compact,
+    required this.comfortable,
     required this.title,
     required this.actionLabel,
     required this.onAction,
@@ -477,128 +609,115 @@ class _SectionHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final narrow = constraints.maxWidth < 520;
-
-        if (narrow) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: AppColors.forest,
+              fontSize: compact
+                  ? comfortable
+                        ? 20
+                        : 17
+                  : 27,
+              height: 1.05,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        TextButton.icon(
+          onPressed: onAction,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.forest,
+            padding: EdgeInsets.zero,
+            minimumSize: Size(0, compact ? 30 : 36),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          icon: const SizedBox.shrink(),
+          label: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                title,
+                compact ? 'Detail' : actionLabel,
                 style: TextStyle(
                   color: AppColors.forest,
-                  fontSize: 26,
-                  height: 1.08,
-                  fontWeight: FontWeight.w800,
+                  fontSize: compact
+                      ? comfortable
+                            ? 13
+                            : 12
+                      : 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: onAction,
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.forest,
-                    padding: EdgeInsets.zero,
-                    minimumSize: const Size(0, 34),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: const SizedBox.shrink(),
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        actionLabel,
-                        style: const TextStyle(
-                          color: AppColors.forest,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 3),
-                      const Icon(Icons.chevron_right, size: 24),
-                    ],
-                  ),
-                ),
-              ),
+              SizedBox(width: compact ? 1 : 3),
+              Icon(Icons.chevron_right, size: compact ? 18 : 24),
             ],
-          );
-        }
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.forest,
-                  fontSize: 31,
-                  height: 1.1,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: onAction,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.forest,
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(0, 40),
-              ),
-              icon: const SizedBox.shrink(),
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    actionLabel,
-                    style: const TextStyle(
-                      color: AppColors.forest,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, size: 29),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }
 
 class _InlineError extends StatelessWidget {
+  final bool compact;
   final String message;
   final VoidCallback onRetry;
+  final VoidCallback onChooseLocation;
 
-  const _InlineError({required this.message, required this.onRetry});
+  const _InlineError({
+    required this.compact,
+    required this.message,
+    required this.onRetry,
+    required this.onChooseLocation,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.coralSoft,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 10 : 15,
+          vertical: compact ? 5 : 8,
+        ),
         child: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: AppColors.coral),
-            const SizedBox(width: 10),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.coral,
+              size: compact ? 19 : 23,
+            ),
+            SizedBox(width: compact ? 6 : 10),
             Expanded(
               child: Text(
-                message,
-                style: const TextStyle(
+                compact ? 'Lokasi otomatis gagal.' : message,
+                maxLines: compact ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
                   color: AppColors.ink,
-                  fontSize: 14,
+                  fontSize: compact ? 11 : 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            TextButton(onPressed: onRetry, child: const Text('Coba lagi')),
+            if (compact)
+              TextButton(
+                onPressed: onChooseLocation,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  minimumSize: const Size(0, 34),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text('Pilih lokasi'),
+              )
+            else
+              TextButton(onPressed: onRetry, child: const Text('Coba lagi')),
           ],
         ),
       ),
@@ -608,47 +727,58 @@ class _InlineError extends StatelessWidget {
 
 class _LoadingView extends StatelessWidget {
   final double horizontalPadding;
+  final double verticalPadding;
+  final bool compact;
+  final double riskHeight;
 
-  const _LoadingView({required this.horizontalPadding});
+  const _LoadingView({
+    required this.horizontalPadding,
+    required this.verticalPadding,
+    required this.compact,
+    required this.riskHeight,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
+    return Padding(
       padding: EdgeInsets.fromLTRB(
         horizontalPadding,
-        18,
+        verticalPadding,
         horizontalPadding,
-        24,
+        verticalPadding,
       ),
-      children: [
-        Row(
-          children: [
-            const _Skeleton(width: 67, height: 67, circle: true),
-            const SizedBox(width: 15),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _Skeleton(width: 210, height: 25),
-                  SizedBox(height: 8),
-                  _Skeleton(width: 250, height: 16),
-                ],
-              ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: compact ? 40 : 62,
+            child: Row(
+              children: [
+                _Skeleton(
+                  width: compact ? 36 : 62,
+                  height: compact ? 36 : 62,
+                  circle: true,
+                ),
+                const SizedBox(width: 10),
+                const Expanded(child: _Skeleton(width: 210, height: 22)),
+                const SizedBox(width: 10),
+                _Skeleton(
+                  width: compact ? 38 : 56,
+                  height: compact ? 38 : 56,
+                  circle: true,
+                ),
+              ],
             ),
-            const SizedBox(width: 15),
-            _Skeleton(
-              width: horizontalPadding < 28 ? 50 : 70,
-              height: horizontalPadding < 28 ? 50 : 70,
-              circle: true,
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        const _Skeleton(width: double.infinity, height: 106),
-        const SizedBox(height: 16),
-        const _Skeleton(width: double.infinity, height: 390),
-      ],
+          ),
+          SizedBox(height: compact ? 6 : 10),
+          _Skeleton(width: double.infinity, height: compact ? 64 : 82),
+          SizedBox(height: compact ? 6 : 10),
+          _Skeleton(width: double.infinity, height: riskHeight),
+          SizedBox(height: compact ? 8 : 12),
+          Expanded(
+            child: _Skeleton(width: double.infinity, height: double.infinity),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -678,33 +808,51 @@ class _Skeleton extends StatelessWidget {
 }
 
 class _ReassuranceBanner extends StatelessWidget {
-  const _ReassuranceBanner();
+  final bool compact;
+  final bool comfortable;
+
+  const _ReassuranceBanner({required this.compact, required this.comfortable});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 12 : 20,
+        vertical: compact
+            ? comfortable
+                  ? 10
+                  : 8
+            : 11,
+      ),
       decoration: BoxDecoration(
         color: AppColors.greenSoft,
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.greenBorder),
       ),
       child: Row(
         children: [
-          const BrandMark(size: 39),
-          const SizedBox(width: 21),
-          const Expanded(
+          BrandMark(size: compact ? (comfortable ? 31 : 28) : 36),
+          SizedBox(width: compact ? 10 : 18),
+          Expanded(
             child: Text(
               'Lingkungan sehat dimulai dari kesadaran kita',
               style: TextStyle(
                 color: AppColors.forest,
-                fontSize: 18,
+                fontSize: compact
+                    ? comfortable
+                          ? 14
+                          : 13
+                    : 16,
                 height: 1.2,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.green, size: 29),
+          Icon(
+            Icons.chevron_right,
+            color: AppColors.green,
+            size: compact ? 22 : 27,
+          ),
         ],
       ),
     );

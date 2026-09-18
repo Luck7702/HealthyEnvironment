@@ -1,86 +1,285 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_theme.dart';
+
+class InfoRange {
+  final String range;
+  final String category;
+
+  const InfoRange(this.range, this.category);
+}
+
 class InfoDialog {
-  static Future<void> show(
+  static Future<void> showMetric(
     BuildContext context, {
     required String title,
-    required String message,
-    IconData icon = Icons.info_outline,
-    String? imageAsset,
-    String confirmText = "OK",
-    String? cancelText,
-    VoidCallback? onConfirm,
+    required String currentValue,
+    required String currentStatus,
+    required String definition,
+    required String impact,
+    required String guidance,
+    required IconData icon,
+    required Color accent,
+    required List<InfoRange> ranges,
+    required int activeRange,
   }) {
-    return showDialog(
+    return showDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (context) {
+        final maxHeight = MediaQuery.sizeOf(context).height * .84;
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+          backgroundColor: AppColors.card,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 430, maxHeight: maxHeight),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primaryContainer,
-                  child: Icon(icon, size: 32),
-                ),
-
-                const SizedBox(height: 16),
-
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _MetricHeader(
+                          title: title,
+                          currentValue: currentValue,
+                          currentStatus: currentStatus,
+                          icon: icon,
+                          accent: accent,
+                        ),
+                        const SizedBox(height: 20),
+                        _InfoBlock(title: 'Tentang', body: definition),
+                        const SizedBox(height: 18),
+                        const Text(
+                          'Rentang kategori',
+                          style: TextStyle(
+                            color: AppColors.forest,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        for (var index = 0; index < ranges.length; index++) ...[
+                          _RangeRow(
+                            item: ranges[index],
+                            active: index == activeRange,
+                            accent: accent,
+                          ),
+                          if (index != ranges.length - 1)
+                            const SizedBox(height: 6),
+                        ],
+                        const SizedBox(height: 18),
+                        _InfoBlock(title: 'Dampak', body: impact),
+                        const SizedBox(height: 14),
+                        _InfoBlock(
+                          title: 'Yang dapat dilakukan',
+                          body: guidance,
+                          accent: accent,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-
-                const SizedBox(height: 12),
-
-                if (imageAsset != null) ...[
-                  Image.asset(imageAsset, height: 120),
-                  const SizedBox(height: 12),
-                ],
-
-                Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15),
-                ),
-
-                const SizedBox(height: 20),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (cancelText != null)
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(cancelText),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 18),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.forest,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(46),
                       ),
-
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        if (onConfirm != null) onConfirm();
-                      },
-                      child: Text(confirmText),
+                      child: const Text('Tutup'),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _MetricHeader extends StatelessWidget {
+  final String title;
+  final String currentValue;
+  final String currentStatus;
+  final IconData icon;
+  final Color accent;
+
+  const _MetricHeader({
+    required this.title,
+    required this.currentValue,
+    required this.currentStatus,
+    required this.icon,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: .12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: accent, size: 28),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.forest,
+                  fontSize: 20,
+                  height: 1.1,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: currentValue,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    TextSpan(text: '  $currentStatus'),
+                  ],
+                ),
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 14,
+                  height: 1.2,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RangeRow extends StatelessWidget {
+  final InfoRange item;
+  final bool active;
+  final Color accent;
+
+  const _RangeRow({
+    required this.item,
+    required this.active,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 38),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: active ? accent.withValues(alpha: .11) : AppColors.page,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: active ? accent.withValues(alpha: .55) : AppColors.line,
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 94,
+            child: Text(
+              item.range,
+              style: TextStyle(
+                color: active ? accent : AppColors.ink,
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              item.category,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: active ? accent : AppColors.muted,
+                fontSize: 13,
+                fontWeight: active ? FontWeight.w800 : FontWeight.w500,
+              ),
+            ),
+          ),
+          if (active) ...[
+            const SizedBox(width: 7),
+            Icon(Icons.check_circle, color: accent, size: 17),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoBlock extends StatelessWidget {
+  final String title;
+  final String body;
+  final Color? accent;
+
+  const _InfoBlock({required this.title, required this.body, this.accent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: accent == null
+          ? EdgeInsets.zero
+          : const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      decoration: accent == null
+          ? null
+          : BoxDecoration(
+              color: accent!.withValues(alpha: .08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.forest,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            body,
+            style: const TextStyle(
+              color: AppColors.ink,
+              fontSize: 13.5,
+              height: 1.35,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
