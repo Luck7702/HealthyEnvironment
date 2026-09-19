@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 enum RiskState { unknown, incomplete, known }
 
 class Weather {
@@ -22,7 +24,7 @@ class Weather {
     if (aqi != null) values['AQI'] = _band(aqi!.toDouble(), 51, 151, 301);
     if (uv != null) values['UV'] = _band(uv!, 3, 8, 11);
     if (temp != null) {
-      final heat = _band(temp!, 30, 35, 40);
+      final heat = _band(heatIndex ?? temp!, 30, 35, 40);
       final cold = temp! <= 0
           ? 1.0
           : temp! < 15
@@ -33,6 +35,38 @@ class Weather {
     final weather = _conditionSeverity;
     if (weather != null) values['Cuaca'] = weather;
     return values;
+  }
+
+  double? get heatIndex {
+    if (temp == null || humidity == null) return null;
+    if (humidity! < 0 || humidity! > 100) return null;
+
+    final tempF = temp! * 9 / 5 + 32;
+    final simpleEstimate =
+        0.5 * (tempF + 61 + (tempF - 68) * 1.2 + humidity! * 0.094);
+    var heatIndexF = (simpleEstimate + tempF) / 2;
+
+    if (heatIndexF >= 80) {
+      heatIndexF =
+          -42.379 +
+          2.04901523 * tempF +
+          10.14333127 * humidity! -
+          0.22475541 * tempF * humidity! -
+          0.00683783 * tempF * tempF -
+          0.05481717 * humidity! * humidity! +
+          0.00122874 * tempF * tempF * humidity! +
+          0.00085282 * tempF * humidity! * humidity! -
+          0.00000199 * tempF * tempF * humidity! * humidity!;
+
+      if (humidity! < 13 && tempF >= 80 && tempF <= 112) {
+        heatIndexF -=
+            (13 - humidity!) / 4 * math.sqrt((17 - (tempF - 95).abs()) / 17);
+      } else if (humidity! > 85 && tempF >= 80 && tempF <= 87) {
+        heatIndexF += (humidity! - 85) / 10 * (87 - tempF) / 5;
+      }
+    }
+
+    return (heatIndexF - 32) * 5 / 9;
   }
 
   double _band(double value, double moderate, double high, double extreme) {
@@ -171,11 +205,12 @@ class Weather {
       }
     }
     if (temp != null) {
-      if (temp! >= 35) {
+      final perceivedHeat = heatIndex ?? temp!;
+      if (perceivedHeat >= 35) {
         recs.add(
           'Cari tempat teduh, minum cukup, dan kurangi aktivitas berat.',
         );
-      } else if (temp! >= 30) {
+      } else if (perceivedHeat >= 30) {
         recs.add('Minum cukup dan beristirahat dari panas.');
       } else if (temp! <= 0) {
         recs.add('Gunakan pakaian hangat dan batasi paparan dingin.');

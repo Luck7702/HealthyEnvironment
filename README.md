@@ -72,7 +72,7 @@ Current verification: `fvm flutter analyze` and `fvm flutter test` pass after in
 
 ## Environmental risk analysis
 
-Risk uses strongest known hazard across AQI, UV Index, temperature, and weather condition. AQI, UV, and temperature cutoffs are app heuristics: AQI `<51` low, `51–150` moderate, `>=151` high; UV `<3` low, `3–7` moderate, `>=8` high; temperature `15 <= T < 30°C` low, `30 <= T < 35°C` moderate, `T >= 35°C` high, `T < 15°C` moderate, `T <= 0°C` high. Decimal readings stay precise. These are not a validated medical score or probability.
+Risk uses strongest known hazard across AQI, UV Index, heat exposure, and weather condition. Heat exposure uses the NWS heat-index formula when temperature and relative humidity are available, then falls back to air temperature when humidity is unavailable. AQI, UV, and heat cutoffs are app heuristics: AQI `<51` low, `51–150` moderate, `>=151` high; UV `<3` low, `3–7` moderate, `>=8` high; heat exposure `15 <= T < 30°C` low, `30 <= T < 35°C` moderate, `T >= 35°C` high, air temperature `<15°C` moderate, air temperature `<=0°C` high. Decimal readings stay precise. These are not a validated medical score or probability.
 
 Invalid or missing readings remain unknown (`null`). Known elevated hazards remain visible when other readings are missing; when every indicator is unknown, UI states risk is unavailable instead of inventing a safe zero. Recommendations stay short and tied to known hazards.
 
