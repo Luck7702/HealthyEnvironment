@@ -100,9 +100,11 @@ class EnvStats extends StatelessWidget {
             value: weather.temp == null
                 ? '-'
                 : '${weather.temp!.toStringAsFixed(1)}°C',
-            status: _temperatureStatus(weather.temp),
+            status: _temperatureCardStatus(weather),
             icon: Icons.thermostat_outlined,
-            accent: EnvStatsColors.getTempAccent(weather.temp),
+            accent: EnvStatsColors.getTempAccent(
+              weather.heatIndex ?? weather.temp,
+            ),
             compact: compactDashboard,
             comfortable: comfortableDashboard,
             minimal: minimalDashboard,
@@ -110,17 +112,19 @@ class EnvStats extends StatelessWidget {
             onTap: () => InfoDialog.showMetric(
               context,
               title: 'Suhu udara',
-              currentValue: weather.temp == null
-                  ? 'Belum tersedia'
-                  : '${weather.temp!.toStringAsFixed(1)}°C',
-              currentStatus: _temperatureStatus(weather.temp),
+              currentValue: _temperatureDialogValue(weather),
+              currentStatus: _temperatureStatus(
+                weather.heatIndex ?? weather.temp,
+              ),
               definition:
-                  'Suhu menunjukkan tingkat panas atau dingin udara sekitar dalam derajat Celsius.',
+                  'Suhu menunjukkan panas atau dingin udara. Jika kelembapan tersedia, risiko panas memakai indeks panas atau suhu yang terasa oleh tubuh.',
               impact:
                   'Suhu tinggi dapat memicu dehidrasi dan kelelahan panas. Suhu rendah dapat menyebabkan tubuh kehilangan panas lebih cepat.',
-              guidance: _temperatureGuidance(weather.temp),
+              guidance: _temperatureGuidance(weather.temp, weather.heatIndex),
               icon: Icons.thermostat_outlined,
-              accent: EnvStatsColors.getTempAccent(weather.temp),
+              accent: EnvStatsColors.getTempAccent(
+                weather.heatIndex ?? weather.temp,
+              ),
               ranges: const [
                 InfoRange('<10°C', 'Dingin'),
                 InfoRange('10-20°C', 'Sejuk'),
@@ -128,7 +132,9 @@ class EnvStats extends StatelessWidget {
                 InfoRange('31-35°C', 'Panas'),
                 InfoRange('>35°C', 'Sangat panas'),
               ],
-              activeRange: _temperatureRangeIndex(weather.temp),
+              activeRange: _temperatureRangeIndex(
+                weather.heatIndex ?? weather.temp,
+              ),
             ),
           ),
         ];
@@ -191,6 +197,25 @@ class EnvStats extends StatelessWidget {
     return 'Sangat panas';
   }
 
+  static String _temperatureCardStatus(Weather weather) {
+    final actual = _temperatureStatus(weather.temp);
+    final heatIndex = weather.heatIndex;
+    if (weather.temp == null ||
+        heatIndex == null ||
+        heatIndex < weather.temp! + 1) {
+      return actual;
+    }
+    return 'Terasa ${_temperatureStatus(heatIndex).toLowerCase()}';
+  }
+
+  static String _temperatureDialogValue(Weather weather) {
+    if (weather.temp == null) return 'Belum tersedia';
+    final actual = '${weather.temp!.toStringAsFixed(1)}°C';
+    final heatIndex = weather.heatIndex;
+    if (heatIndex == null) return actual;
+    return '$actual · terasa ${heatIndex.toStringAsFixed(1)}°C';
+  }
+
   static int _aqiRangeIndex(int? value) {
     if (value == null) return -1;
     if (value <= 50) return 0;
@@ -245,11 +270,16 @@ class EnvStats extends StatelessWidget {
     return 'Cari tempat teduh saat menunggu order. Gunakan jaket lengan panjang dan tabir surya.';
   }
 
-  static String _temperatureGuidance(double? value) {
-    if (value == null) return 'Perbarui data sebelum beraktivitas di luar.';
-    if (value < 10) return 'Gunakan pakaian hangat dan batasi paparan lama.';
-    if (value <= 30) return 'Sesuaikan pakaian dan tetap cukup minum.';
-    if (value <= 35) return 'Minum cukup dan beristirahat dari panas.';
+  static String _temperatureGuidance(double? temperature, double? heatIndex) {
+    if (temperature == null) {
+      return 'Perbarui data sebelum beraktivitas di luar.';
+    }
+    if (temperature < 10) {
+      return 'Gunakan pakaian hangat dan batasi paparan lama.';
+    }
+    final perceivedHeat = heatIndex ?? temperature;
+    if (perceivedHeat <= 30) return 'Sesuaikan pakaian dan tetap cukup minum.';
+    if (perceivedHeat <= 35) return 'Minum cukup dan beristirahat dari panas.';
     return 'Cari tempat teduh dan kurangi aktivitas fisik berat.';
   }
 }

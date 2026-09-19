@@ -69,6 +69,7 @@ void main() {
 
     expect(find.text('Tinggi'), findsOneWidget);
     expect(find.text('Data belum lengkap'), findsNothing);
+    expect(find.text('Terasa panas'), findsOneWidget);
   });
 
   for (final size in <Size>[
@@ -149,6 +150,7 @@ void main() {
     await tester.tap(find.text('Suhu'));
     await tester.pumpAndSettle();
     expect(find.text('Suhu udara'), findsOneWidget);
+    expect(find.textContaining('terasa'), findsWidgets);
     expect(find.text('31-35°C'), findsOneWidget);
     expect(find.text('Panas'), findsWidgets);
   });
