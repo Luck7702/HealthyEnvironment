@@ -42,6 +42,33 @@ void main() {
     expect(find.byKey(const Key('recommendations-list')), findsOneWidget);
   });
 
+  testWidgets(
+    'submits a manual location without a controller lifecycle error',
+    (WidgetTester tester) async {
+      final queries = <String?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeScreen(
+            environmentLoader: ({String? query}) async {
+              queries.add(query);
+              return environment;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Ciledug 1'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '  Bandung  ');
+      await tester.tap(find.widgetWithText(FilledButton, 'Cari'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(queries, contains('Bandung'));
+    },
+  );
+
   testWidgets('smoky haze with complete core readings is not incomplete', (
     WidgetTester tester,
   ) async {
