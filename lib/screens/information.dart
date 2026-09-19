@@ -11,10 +11,14 @@ class InformationScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Mengapa bisa bahaya?')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-        children: const [
+        children: [
           Text(
             'Kenali faktor lingkungan yang bisa memengaruhi kesehatan saat beraktivitas di luar.',
-            style: TextStyle(color: AppColors.muted, fontSize: 17, height: 1.4),
+            style: TextStyle(
+              color: context.appColors.muted,
+              fontSize: 17,
+              height: 1.4,
+            ),
           ),
           SizedBox(height: 20),
           InfoCard(
@@ -22,7 +26,7 @@ class InformationScreen extends StatelessWidget {
             title: 'Sinar UV',
             description:
                 'Paparan sinar matahari dengan indeks UV tinggi dapat menyebabkan kulit terbakar, mata perih, dan risiko kesehatan dalam jangka panjang.',
-            color: AppColors.orange,
+            color: context.appColors.orange,
           ),
           SizedBox(height: 12),
           InfoCard(
@@ -30,7 +34,7 @@ class InformationScreen extends StatelessWidget {
             title: 'Polusi udara',
             description:
                 'Kualitas udara yang buruk dapat mengganggu pernapasan dan memperburuk kondisi kesehatan tertentu. Gunakan masker bila diperlukan.',
-            color: AppColors.green,
+            color: context.appColors.green,
           ),
           SizedBox(height: 12),
           InfoCard(
@@ -38,7 +42,7 @@ class InformationScreen extends StatelessWidget {
             title: 'Suhu',
             description:
                 'Suhu yang terlalu panas dapat menyebabkan dehidrasi dan heat stress. Minum cukup dan ambil waktu istirahat.',
-            color: AppColors.coral,
+            color: context.appColors.coral,
           ),
           SizedBox(height: 12),
           InfoCard(
@@ -46,7 +50,7 @@ class InformationScreen extends StatelessWidget {
             title: 'Tujuan aplikasi',
             description:
                 'LingkunganSehat membantu pengemudi memahami kondisi sekitar agar dapat bekerja dengan lebih waspada dan menjaga kesehatan.',
-            color: AppColors.blue,
+            color: context.appColors.blue,
           ),
         ],
       ),
@@ -95,8 +99,8 @@ class InfoCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppColors.ink,
+                  style: TextStyle(
+                    color: context.appColors.ink,
                     fontSize: 19,
                     fontWeight: FontWeight.w800,
                   ),
@@ -104,8 +108,8 @@ class InfoCard extends StatelessWidget {
                 const SizedBox(height: 7),
                 Text(
                   description,
-                  style: const TextStyle(
-                    color: AppColors.muted,
+                  style: TextStyle(
+                    color: context.appColors.muted,
                     fontSize: 15,
                     height: 1.4,
                   ),

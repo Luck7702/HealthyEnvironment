@@ -13,10 +13,10 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
-          const Text(
+          Text(
             'Tampilan',
             style: TextStyle(
-              color: AppColors.forest,
+              color: context.appColors.forest,
               fontSize: 25,
               fontWeight: FontWeight.w800,
             ),
@@ -46,27 +46,27 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: 14),
-          const Text(
+          Text(
             'Lokasi dan bahasa',
             style: TextStyle(
-              color: AppColors.forest,
+              color: context.appColors.forest,
               fontSize: 25,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 12),
-          const _SettingTile(
+          _SettingTile(
             icon: Icons.language_outlined,
             title: 'Bahasa',
             subtitle: 'Bahasa Indonesia',
-            trailing: Icon(Icons.chevron_right, color: AppColors.muted),
+            trailing: Icon(Icons.chevron_right, color: context.appColors.muted),
           ),
           const SizedBox(height: 12),
-          const _SettingTile(
+          _SettingTile(
             icon: Icons.location_on_outlined,
             title: 'Lokasi saat ini',
             subtitle: 'Ubah lokasi dari halaman utama',
-            trailing: Icon(Icons.chevron_right, color: AppColors.muted),
+            trailing: Icon(Icons.chevron_right, color: context.appColors.muted),
           ),
         ],
       ),
@@ -100,11 +100,11 @@ class _SettingTile extends StatelessWidget {
           Container(
             width: 48,
             height: 48,
-            decoration: const BoxDecoration(
-              color: AppColors.greenSoft,
+            decoration: BoxDecoration(
+              color: context.appColors.greenSoft,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: AppColors.forest),
+            child: Icon(icon, color: context.appColors.forest),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -113,8 +113,8 @@ class _SettingTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppColors.ink,
+                  style: TextStyle(
+                    color: context.appColors.ink,
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
@@ -122,8 +122,8 @@ class _SettingTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: AppColors.muted,
+                  style: TextStyle(
+                    color: context.appColors.muted,
                     fontSize: 14,
                     height: 1.25,
                   ),

@@ -19,7 +19,7 @@ class RecommendationSection extends StatelessWidget {
     this.footer,
   });
 
-  List<_Recommendation> get _recommendations {
+  List<_Recommendation> _recommendations(BuildContext context) {
     final values = weather.recommendations;
     if (values.isEmpty) {
       return [
@@ -27,24 +27,24 @@ class RecommendationSection extends StatelessWidget {
           icon: weather.riskState == RiskState.unknown
               ? Icons.hourglass_empty_rounded
               : Icons.favorite_outline,
-          color: AppColors.green,
-          background: AppColors.greenSoft,
+          color: context.appColors.green,
+          background: context.appColors.greenSoft,
           text: weather.riskState == RiskState.unknown
               ? 'Saran belum tersedia sampai data lingkungan diterima.'
               : 'Kondisi relatif aman. Tetap jaga kesehatan.',
         ),
       ];
     }
-    return values.map(_recommendationFor).toList();
+    return values.map((text) => _recommendationFor(context, text)).toList();
   }
 
-  _Recommendation _recommendationFor(String text) {
+  _Recommendation _recommendationFor(BuildContext context, String text) {
     final normalized = text.toLowerCase();
     if (normalized.contains('uv') || normalized.contains('matahari')) {
       return _Recommendation(
         icon: Icons.wb_sunny_outlined,
-        color: AppColors.orange,
-        background: AppColors.orangeSoft,
+        color: context.appColors.orange,
+        background: context.appColors.orangeSoft,
         text: text,
       );
     }
@@ -53,30 +53,30 @@ class RecommendationSection extends StatelessWidget {
         normalized.contains('berkendara')) {
       return _Recommendation(
         icon: Icons.cloudy_snowing,
-        color: AppColors.blue,
-        background: AppColors.blueSoft,
+        color: context.appColors.blue,
+        background: context.appColors.blueSoft,
         text: text,
       );
     }
     if (normalized.contains('minum') || normalized.contains('panas')) {
       return _Recommendation(
         icon: Icons.water_drop_outlined,
-        color: AppColors.blue,
-        background: AppColors.blueSoft,
+        color: context.appColors.blue,
+        background: context.appColors.blueSoft,
         text: text,
       );
     }
     return _Recommendation(
       icon: Icons.groups_outlined,
-      color: AppColors.green,
-      background: AppColors.greenSoft,
+      color: context.appColors.green,
+      background: context.appColors.greenSoft,
       text: text,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final recommendations = _recommendations;
+    final recommendations = _recommendations(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -90,7 +90,7 @@ class RecommendationSection extends StatelessWidget {
             Text(
               'Saran untuk Anda',
               style: TextStyle(
-                color: AppColors.forest,
+                color: context.appColors.forest,
                 fontSize: minimalDashboard
                     ? comfortable
                           ? 21
@@ -116,7 +116,7 @@ class RecommendationSection extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: AppColors.muted,
+                color: context.appColors.muted,
                 fontSize: minimalDashboard
                     ? comfortable
                           ? 13
@@ -197,11 +197,11 @@ class _RecommendationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(compact ? 16 : 19);
     return Material(
-      color: AppColors.card,
+      color: context.appColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: radius,
         side: minimal
-            ? const BorderSide(color: AppColors.greenBorder)
+            ? BorderSide(color: context.appColors.greenBorder)
             : BorderSide.none,
       ),
       child: InkWell(
@@ -270,7 +270,7 @@ class _RecommendationTile extends StatelessWidget {
                       maxLines: compact ? 2 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: AppColors.ink,
+                        color: context.appColors.ink,
                         fontSize: compact
                             ? comfortable
                                   ? 13
@@ -286,7 +286,7 @@ class _RecommendationTile extends StatelessWidget {
                 if (!minimal)
                   Icon(
                     Icons.chevron_right,
-                    color: AppColors.muted,
+                    color: context.appColors.muted,
                     size: compact ? 20 : 25,
                   ),
               ],

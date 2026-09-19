@@ -31,7 +31,7 @@ class EnvStats extends StatelessWidget {
             value: weather.aqi?.toString() ?? '-',
             status: _aqiCardStatus(weather.aqi),
             icon: Icons.cloud,
-            accent: EnvStatsColors.getAqiAccent(weather.aqi),
+            accent: EnvStatsColors.getAqiAccent(context, weather.aqi),
             compact: compactDashboard,
             comfortable: comfortableDashboard,
             minimal: minimalDashboard,
@@ -49,7 +49,7 @@ class EnvStats extends StatelessWidget {
                   'Nilai tinggi dapat mengiritasi mata dan saluran napas. Anak, lansia, dan orang dengan gangguan pernapasan lebih rentan.',
               guidance: _aqiGuidance(weather.aqi),
               icon: Icons.cloud_outlined,
-              accent: EnvStatsColors.getAqiAccent(weather.aqi),
+              accent: EnvStatsColors.getAqiAccent(context, weather.aqi),
               ranges: const [
                 InfoRange('0-50', 'Baik'),
                 InfoRange('51-100', 'Sedang'),
@@ -66,7 +66,7 @@ class EnvStats extends StatelessWidget {
             value: weather.uv?.toStringAsFixed(1) ?? '-',
             status: _uvStatus(weather.uv),
             icon: Icons.wb_sunny_outlined,
-            accent: EnvStatsColors.getUvAccent(weather.uv),
+            accent: EnvStatsColors.getUvAccent(context, weather.uv),
             compact: compactDashboard,
             comfortable: comfortableDashboard,
             minimal: minimalDashboard,
@@ -84,7 +84,7 @@ class EnvStats extends StatelessWidget {
                   'Paparan tinggi meningkatkan risiko kulit terbakar dan kerusakan mata. Dampak dapat terjadi lebih cepat saat matahari terik.',
               guidance: _uvGuidance(weather.uv),
               icon: Icons.wb_sunny_outlined,
-              accent: EnvStatsColors.getUvAccent(weather.uv),
+              accent: EnvStatsColors.getUvAccent(context, weather.uv),
               ranges: const [
                 InfoRange('0-2', 'Rendah'),
                 InfoRange('3-5', 'Sedang'),
@@ -103,6 +103,7 @@ class EnvStats extends StatelessWidget {
             status: _temperatureCardStatus(weather),
             icon: Icons.thermostat_outlined,
             accent: EnvStatsColors.getTempAccent(
+              context,
               weather.heatIndex ?? weather.temp,
             ),
             compact: compactDashboard,
@@ -123,6 +124,7 @@ class EnvStats extends StatelessWidget {
               guidance: _temperatureGuidance(weather.temp, weather.heatIndex),
               icon: Icons.thermostat_outlined,
               accent: EnvStatsColors.getTempAccent(
+                context,
                 weather.heatIndex ?? weather.temp,
               ),
               ranges: const [
@@ -313,7 +315,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(compact ? 16 : 20);
     return Material(
-      color: AppColors.card,
+      color: context.appColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: radius,
         side: minimal
@@ -343,7 +345,7 @@ class _StatCard extends StatelessWidget {
                         child: Text(
                           value,
                           style: TextStyle(
-                            color: AppColors.ink,
+                            color: context.appColors.ink,
                             fontSize: comfortable ? 31 : 27,
                             height: .95,
                             fontWeight: FontWeight.w700,
@@ -354,7 +356,7 @@ class _StatCard extends StatelessWidget {
                       Text(
                         label,
                         style: TextStyle(
-                          color: AppColors.muted,
+                          color: context.appColors.muted,
                           fontSize: comfortable ? 12 : 11,
                           height: 1,
                           fontWeight: FontWeight.w500,
@@ -411,7 +413,7 @@ class _StatCard extends StatelessWidget {
                         child: Text(
                           value,
                           style: TextStyle(
-                            color: AppColors.ink,
+                            color: context.appColors.ink,
                             fontSize: compact
                                 ? comfortable
                                       ? 30
@@ -426,7 +428,7 @@ class _StatCard extends StatelessWidget {
                       Text(
                         label,
                         style: TextStyle(
-                          color: AppColors.muted,
+                          color: context.appColors.muted,
                           fontSize: compact
                               ? comfortable
                                     ? 12
