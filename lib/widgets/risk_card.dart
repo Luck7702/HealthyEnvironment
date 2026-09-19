@@ -7,10 +7,9 @@ class RiskCard extends StatelessWidget {
 
   const RiskCard({super.key, required this.weather});
 
-  Color get riskColor => RiskLevelColors.getRiskColor(weather);
-
   @override
   Widget build(BuildContext context) {
+    final riskColor = RiskLevelColors.getRiskColor(context, weather);
     return Card(
       color: riskColor.withValues(alpha: .1),
       child: Padding(

@@ -22,7 +22,7 @@ class RiskMeter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final riskColor = RiskLevelColors.getRiskColor(weather);
+    final riskColor = RiskLevelColors.getRiskColor(context, weather);
     return SizedBox(
       width: size,
       height: size,
@@ -30,6 +30,7 @@ class RiskMeter extends StatelessWidget {
         painter: _CircleMeterPainter(
           progress: weather.riskScore,
           color: riskColor,
+          trackColor: context.appColors.meterTrack,
         ),
         child: Center(
           child: Column(
@@ -38,7 +39,7 @@ class RiskMeter extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: AppColors.muted,
+                  color: context.appColors.muted,
                   fontSize: size * .085,
                   fontWeight: FontWeight.w500,
                 ),
@@ -58,7 +59,7 @@ class RiskMeter extends StatelessWidget {
                 Text(
                   'Data belum lengkap',
                   style: TextStyle(
-                    color: AppColors.muted,
+                    color: context.appColors.muted,
                     fontSize: size * .052,
                     fontWeight: FontWeight.w500,
                   ),
@@ -83,8 +84,13 @@ class RiskMeter extends StatelessWidget {
 class _CircleMeterPainter extends CustomPainter {
   final double progress;
   final Color color;
+  final Color trackColor;
 
-  _CircleMeterPainter({required this.progress, required this.color});
+  _CircleMeterPainter({
+    required this.progress,
+    required this.color,
+    required this.trackColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -92,7 +98,7 @@ class _CircleMeterPainter extends CustomPainter {
     final radius = size.width / 2 - 10;
     final strokeWidth = (size.width * .06).clamp(13.0, 17.0).toDouble();
     final background = Paint()
-      ..color = const Color(0xFFE8EEEE)
+      ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
     final foreground = Paint()
@@ -113,6 +119,8 @@ class _CircleMeterPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CircleMeterPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.color != color;
+    return oldDelegate.progress != progress ||
+        oldDelegate.color != color ||
+        oldDelegate.trackColor != trackColor;
   }
 }

@@ -85,7 +85,7 @@ class LocationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.appColors.card,
       borderRadius: BorderRadius.circular(25),
       child: InkWell(
         onTap: onTap,
@@ -118,9 +118,9 @@ class LocationBar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
-                        color: AppColors.forest,
+                        color: context.appColors.forest,
                         size: 22,
                       ),
                       const SizedBox(width: 10),
@@ -130,7 +130,7 @@ class LocationBar extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: AppColors.ink,
+                            color: context.appColors.ink,
                             fontSize: comfortable ? 17 : 16,
                             fontWeight: FontWeight.w700,
                           ),
@@ -138,12 +138,12 @@ class LocationBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       if (loading)
-                        const SizedBox(
+                        SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppColors.green,
+                            color: context.appColors.green,
                           ),
                         )
                       else
@@ -152,7 +152,7 @@ class LocationBar extends StatelessWidget {
                               ? updatedAt
                               : 'Pilih lokasi',
                           style: TextStyle(
-                            color: AppColors.muted,
+                            color: context.appColors.muted,
                             fontSize: comfortable ? 14 : 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -179,13 +179,13 @@ class LocationBar extends StatelessWidget {
                     Container(
                       width: iconSize,
                       height: iconSize,
-                      decoration: const BoxDecoration(
-                        color: AppColors.greenSoft,
+                      decoration: BoxDecoration(
+                        color: context.appColors.greenSoft,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.location_on,
-                        color: AppColors.forest,
+                        color: context.appColors.forest,
                         size: narrow ? 25 : 33,
                       ),
                     ),
@@ -200,7 +200,7 @@ class LocationBar extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: AppColors.ink,
+                              color: context.appColors.ink,
                               fontSize: narrow
                                   ? comfortable
                                         ? 18
@@ -216,7 +216,7 @@ class LocationBar extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: AppColors.muted,
+                              color: context.appColors.muted,
                               fontSize: narrow
                                   ? comfortable
                                         ? 12
@@ -240,16 +240,16 @@ class LocationBar extends StatelessWidget {
                           height: comfortable ? 44 : 40,
                         ),
                         style: IconButton.styleFrom(
-                          backgroundColor: AppColors.greenSoft,
-                          foregroundColor: AppColors.green,
+                          backgroundColor: context.appColors.greenSoft,
+                          foregroundColor: context.appColors.green,
                         ),
                         icon: loading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 21,
                                 height: 21,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  color: AppColors.green,
+                                  color: context.appColors.green,
                                 ),
                               )
                             : const Icon(Icons.refresh_rounded, size: 25),
@@ -258,35 +258,35 @@ class LocationBar extends StatelessWidget {
                       TextButton.icon(
                         onPressed: loading ? null : onRetry,
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.muted,
+                          foregroundColor: context.appColors.muted,
                           padding: const EdgeInsets.symmetric(horizontal: 7),
                           minimumSize: const Size(0, 46),
                         ),
                         icon: Container(
                           width: 48,
                           height: 48,
-                          decoration: const BoxDecoration(
-                            color: AppColors.greenSoft,
+                          decoration: BoxDecoration(
+                            color: context.appColors.greenSoft,
                             shape: BoxShape.circle,
                           ),
                           child: loading
-                              ? const Padding(
+                              ? Padding(
                                   padding: EdgeInsets.all(13),
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.5,
-                                    color: AppColors.green,
+                                    color: context.appColors.green,
                                   ),
                                 )
-                              : const Icon(
+                              : Icon(
                                   Icons.refresh_rounded,
                                   size: 34,
-                                  color: AppColors.green,
+                                  color: context.appColors.green,
                                 ),
                         ),
-                        label: const Text(
+                        label: Text(
                           'Perbarui',
                           style: TextStyle(
-                            color: AppColors.muted,
+                            color: context.appColors.muted,
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
                           ),

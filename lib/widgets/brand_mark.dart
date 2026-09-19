@@ -12,12 +12,16 @@ class BrandMark extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _BrandMarkPainter()),
+      child: CustomPaint(painter: _BrandMarkPainter(context.appColors)),
     );
   }
 }
 
 class _BrandMarkPainter extends CustomPainter {
+  final AppColors colors;
+
+  const _BrandMarkPainter(this.colors);
+
   @override
   void paint(Canvas canvas, Size size) {
     final scale = size.shortestSide / 64;
@@ -26,7 +30,7 @@ class _BrandMarkPainter extends CustomPainter {
 
     final leafPaint = Paint()..style = PaintingStyle.fill;
     final stemPaint = Paint()
-      ..color = AppColors.forest.withValues(alpha: .55)
+      ..color = colors.forest.withValues(alpha: .55)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
@@ -42,14 +46,14 @@ class _BrandMarkPainter extends CustomPainter {
       ..cubicTo(60, 39, 49, 51, 32, 57)
       ..close();
 
-    leafPaint.shader = const LinearGradient(
-      colors: [Color(0xFF73C37B), Color(0xFF238553)],
+    leafPaint.shader = LinearGradient(
+      colors: [Color.lerp(colors.green, Colors.white, .28)!, colors.green],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     ).createShader(const Rect.fromLTWH(0, 0, 64, 64));
     canvas.drawPath(left, leafPaint);
-    leafPaint.shader = const LinearGradient(
-      colors: [Color(0xFF4FAF68), Color(0xFF176B4D)],
+    leafPaint.shader = LinearGradient(
+      colors: [colors.green, colors.forest],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     ).createShader(const Rect.fromLTWH(0, 0, 64, 64));
@@ -61,5 +65,6 @@ class _BrandMarkPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _BrandMarkPainter oldDelegate) =>
+      oldDelegate.colors != colors;
 }

@@ -125,11 +125,11 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.page,
+      backgroundColor: context.appColors.page,
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.page, Color(0xFFEEFCF6)],
+            colors: [context.appColors.page, context.appColors.pageEnd],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -390,7 +390,7 @@ class _PageHeader extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: AppColors.forest,
+                  color: context.appColors.forest,
                   fontSize: titleSize,
                   height: 1,
                   fontWeight: FontWeight.w800,
@@ -403,7 +403,7 @@ class _PageHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: AppColors.muted,
+                    color: context.appColors.muted,
                     fontSize: subtitleSize,
                     height: 1,
                     fontWeight: FontWeight.w500,
@@ -476,7 +476,7 @@ class _HeaderAction extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: AppColors.card,
+        color: context.appColors.card,
         shape: const CircleBorder(),
         child: InkWell(
           onTap: onPressed,
@@ -484,7 +484,7 @@ class _HeaderAction extends StatelessWidget {
           child: SizedBox(
             width: size,
             height: size,
-            child: Icon(icon, color: AppColors.forest, size: iconSize),
+            child: Icon(icon, color: context.appColors.forest, size: iconSize),
           ),
         ),
       ),
@@ -515,7 +515,7 @@ class _RiskPanel extends StatelessWidget {
       borderRadius: BorderRadius.circular(27),
       child: Container(
         height: height,
-        color: AppColors.card,
+        color: context.appColors.card,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -524,6 +524,7 @@ class _RiskPanel extends StatelessWidget {
               fit: compact ? BoxFit.fill : BoxFit.cover,
               alignment: Alignment.bottomCenter,
             ),
+            ColoredBox(color: context.appColors.illustrationOverlay),
             Align(
               alignment: Alignment.topCenter,
               child: Padding(
@@ -540,7 +541,7 @@ class _RiskPanel extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 570),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: AppColors.card.withValues(
+                      color: context.appColors.card.withValues(
                         alpha: compact ? .78 : .6,
                       ),
                       borderRadius: BorderRadius.circular(14),
@@ -556,7 +557,7 @@ class _RiskPanel extends StatelessWidget {
                         maxLines: compact ? 2 : 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: AppColors.ink,
+                          color: context.appColors.ink,
                           fontSize: compact
                               ? comfortable
                                     ? 13
@@ -618,7 +619,7 @@ class _SectionHeading extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: AppColors.forest,
+              color: context.appColors.forest,
               fontSize: compact
                   ? comfortable
                         ? 20
@@ -632,7 +633,7 @@ class _SectionHeading extends StatelessWidget {
         TextButton.icon(
           onPressed: onAction,
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.forest,
+            foregroundColor: context.appColors.forest,
             padding: EdgeInsets.zero,
             minimumSize: Size(0, compact ? 30 : 36),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -644,7 +645,7 @@ class _SectionHeading extends StatelessWidget {
               Text(
                 compact ? 'Detail' : actionLabel,
                 style: TextStyle(
-                  color: AppColors.forest,
+                  color: context.appColors.forest,
                   fontSize: compact
                       ? comfortable
                             ? 13
@@ -679,7 +680,7 @@ class _InlineError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.coralSoft,
+      color: context.appColors.coralSoft,
       borderRadius: BorderRadius.circular(14),
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -690,7 +691,7 @@ class _InlineError extends StatelessWidget {
           children: [
             Icon(
               Icons.warning_amber_rounded,
-              color: AppColors.coral,
+              color: context.appColors.coral,
               size: compact ? 19 : 23,
             ),
             SizedBox(width: compact ? 6 : 10),
@@ -700,7 +701,7 @@ class _InlineError extends StatelessWidget {
                 maxLines: compact ? 1 : 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: AppColors.ink,
+                  color: context.appColors.ink,
                   fontSize: compact ? 11 : 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -800,7 +801,7 @@ class _Skeleton extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .55),
+        color: context.appColors.card.withValues(alpha: .55),
         borderRadius: BorderRadius.circular(circle ? height / 2 : 25),
       ),
     );
@@ -825,9 +826,9 @@ class _ReassuranceBanner extends StatelessWidget {
             : 11,
       ),
       decoration: BoxDecoration(
-        color: AppColors.greenSoft,
+        color: context.appColors.greenSoft,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.greenBorder),
+        border: Border.all(color: context.appColors.greenBorder),
       ),
       child: Row(
         children: [
@@ -837,7 +838,7 @@ class _ReassuranceBanner extends StatelessWidget {
             child: Text(
               'Lingkungan sehat dimulai dari kesadaran kita',
               style: TextStyle(
-                color: AppColors.forest,
+                color: context.appColors.forest,
                 fontSize: compact
                     ? comfortable
                           ? 14
@@ -850,7 +851,7 @@ class _ReassuranceBanner extends StatelessWidget {
           ),
           Icon(
             Icons.chevron_right,
-            color: AppColors.green,
+            color: context.appColors.green,
             size: compact ? 22 : 27,
           ),
         ],

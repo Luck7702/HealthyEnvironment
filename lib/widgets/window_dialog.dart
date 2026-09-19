@@ -29,7 +29,7 @@ class InfoDialog {
       builder: (context) {
         final maxHeight = MediaQuery.sizeOf(context).height * .84;
         return Dialog(
-          backgroundColor: AppColors.card,
+          backgroundColor: context.appColors.card,
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 24,
@@ -58,10 +58,10 @@ class InfoDialog {
                         const SizedBox(height: 20),
                         _InfoBlock(title: 'Tentang', body: definition),
                         const SizedBox(height: 18),
-                        const Text(
+                        Text(
                           'Rentang kategori',
                           style: TextStyle(
-                            color: AppColors.forest,
+                            color: context.appColors.forest,
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
                           ),
@@ -95,8 +95,10 @@ class InfoDialog {
                     child: FilledButton(
                       onPressed: () => Navigator.pop(context),
                       style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.forest,
-                        foregroundColor: Colors.white,
+                        backgroundColor: context.appColors.forest,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         minimumSize: const Size.fromHeight(46),
                       ),
                       child: const Text('Tutup'),
@@ -147,8 +149,8 @@ class _MetricHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: AppColors.forest,
+                style: TextStyle(
+                  color: context.appColors.forest,
                   fontSize: 20,
                   height: 1.1,
                   fontWeight: FontWeight.w800,
@@ -197,10 +199,12 @@ class _RangeRow extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 38),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: active ? accent.withValues(alpha: .11) : AppColors.page,
+        color: active ? accent.withValues(alpha: .11) : context.appColors.page,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: active ? accent.withValues(alpha: .55) : AppColors.line,
+          color: active
+              ? accent.withValues(alpha: .55)
+              : context.appColors.line,
         ),
       ),
       child: Row(
@@ -210,7 +214,7 @@ class _RangeRow extends StatelessWidget {
             child: Text(
               item.range,
               style: TextStyle(
-                color: active ? accent : AppColors.ink,
+                color: active ? accent : context.appColors.ink,
                 fontSize: 13,
                 fontWeight: active ? FontWeight.w800 : FontWeight.w600,
               ),
@@ -221,7 +225,7 @@ class _RangeRow extends StatelessWidget {
               item.category,
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: active ? accent : AppColors.muted,
+                color: active ? accent : context.appColors.muted,
                 fontSize: 13,
                 fontWeight: active ? FontWeight.w800 : FontWeight.w500,
               ),
@@ -262,8 +266,8 @@ class _InfoBlock extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.forest,
+            style: TextStyle(
+              color: context.appColors.forest,
               fontSize: 14,
               fontWeight: FontWeight.w800,
             ),
@@ -271,8 +275,8 @@ class _InfoBlock extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             body,
-            style: const TextStyle(
-              color: AppColors.ink,
+            style: TextStyle(
+              color: context.appColors.ink,
               fontSize: 13.5,
               height: 1.35,
               fontWeight: FontWeight.w400,
