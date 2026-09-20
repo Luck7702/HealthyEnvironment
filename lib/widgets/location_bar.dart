@@ -2,47 +2,60 @@ import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
 
-void showInputPrompt(
+Future<void> showInputPrompt(
   BuildContext context,
   void Function(String value) onSubmit,
-) {
-  final controller = TextEditingController();
-
-  showDialog<void>(
+) async {
+  final value = await showDialog<String>(
     context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Cari lokasi'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textInputAction: TextInputAction.search,
-          decoration: const InputDecoration(
-            labelText: 'Nama kota atau area',
-            border: OutlineInputBorder(),
-          ),
-          onSubmitted: (value) {
-            Navigator.pop(context);
-            onSubmit(value);
-          },
+    builder: (_) => const _LocationInputDialog(),
+  );
+  if (value != null && context.mounted) onSubmit(value);
+}
+
+class _LocationInputDialog extends StatefulWidget {
+  const _LocationInputDialog();
+
+  @override
+  State<_LocationInputDialog> createState() => _LocationInputDialogState();
+}
+
+class _LocationInputDialogState extends State<_LocationInputDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    Navigator.pop(context, _controller.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Cari lokasi'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textInputAction: TextInputAction.search,
+        decoration: const InputDecoration(
+          labelText: 'Nama kota atau area',
+          border: OutlineInputBorder(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              Navigator.pop(context);
-              onSubmit(value);
-            },
-            child: const Text('Cari'),
-          ),
-        ],
-      );
-    },
-  ).then((_) => controller.dispose());
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Batal'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Cari')),
+      ],
+    );
+  }
 }
 
 class LocationBar extends StatelessWidget {
