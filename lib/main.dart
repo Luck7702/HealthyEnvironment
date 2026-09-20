@@ -3,7 +3,9 @@ import 'package:lingkungan_sehat/config/app_theme.dart';
 import 'package:lingkungan_sehat/config/theme_controller.dart';
 import 'package:lingkungan_sehat/screens/home.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await loadThemePreference();
   runApp(const MyApp());
 }
 
