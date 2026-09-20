@@ -36,11 +36,7 @@ class SettingsScreen extends StatelessWidget {
                     : 'Gunakan tampilan terang seperti sekarang',
                 trailing: Switch.adaptive(
                   value: darkMode,
-                  onChanged: (value) {
-                    appThemeMode.value = value
-                        ? ThemeMode.dark
-                        : ThemeMode.light;
-                  },
+                  onChanged: setDarkMode,
                 ),
               );
             },
