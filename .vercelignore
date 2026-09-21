@@ -1,0 +1,8 @@
+.dart_tool/
+build/
+coverage/
+.fvm/
+.flutter-sdk/
+.env
+.env.*
+node_modules/
