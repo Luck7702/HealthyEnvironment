@@ -5,6 +5,7 @@
   "engines": { "node": "22.x" },
   "scripts": {
     "build": "bash scripts/vercel-build.sh",
-    "dev:api": "vercel dev --local-config vercel.dev.json --listen 3000"
+    "dev:api": "vercel dev --local-config vercel.dev.json --listen 3000",
+    "test:api": "node --test api/*.test.js"
   }
 }
