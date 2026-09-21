@@ -92,9 +92,7 @@ class RecommendationSection extends StatelessWidget {
               style: TextStyle(
                 color: context.appColors.forest,
                 fontSize: minimalDashboard
-                    ? comfortable
-                          ? 21
-                          : 19
+                    ? 20
                     : compact
                     ? comfortable
                           ? 21
@@ -118,21 +116,19 @@ class RecommendationSection extends StatelessWidget {
               style: TextStyle(
                 color: context.appColors.muted,
                 fontSize: minimalDashboard
-                    ? comfortable
-                          ? 13
-                          : 12
+                    ? 13
                     : compact
                     ? comfortable
                           ? 12
                           : 11
                     : 15,
-                height: 1.15,
+                height: minimalDashboard ? 1.25 : 1.15,
                 fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(
               height: minimalDashboard
-                  ? 12
+                  ? 14
                   : compact
                   ? 6
                   : 9,
@@ -143,7 +139,7 @@ class RecommendationSection extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 physics: const ClampingScrollPhysics(),
                 itemCount: itemCount,
-                separatorBuilder: (_, _) => SizedBox(height: compact ? 6 : 8),
+                separatorBuilder: (_, _) => SizedBox(height: compact ? 10 : 8),
                 itemBuilder: (context, index) {
                   if (index == recommendations.length) return footer!;
                   return _RecommendationTile(
@@ -201,7 +197,9 @@ class _RecommendationTile extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: radius,
         side: minimal
-            ? BorderSide(color: context.appColors.greenBorder)
+            ? BorderSide(
+                color: context.appColors.greenBorder.withValues(alpha: .55),
+              )
             : BorderSide.none,
       ),
       child: InkWell(
@@ -211,9 +209,7 @@ class _RecommendationTile extends StatelessWidget {
           constraints: BoxConstraints(
             minHeight: compact
                 ? minimal
-                      ? comfortable
-                            ? 76
-                            : 68
+                      ? 72
                       : comfortable
                       ? 60
                       : 52
@@ -221,11 +217,9 @@ class _RecommendationTile extends StatelessWidget {
           ),
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: compact ? 10 : 18,
+              horizontal: compact ? 14 : 18,
               vertical: minimal
-                  ? comfortable
-                        ? 11
-                        : 9
+                  ? 14
                   : compact
                   ? comfortable
                         ? 8
@@ -235,16 +229,8 @@ class _RecommendationTile extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: compact
-                      ? comfortable
-                            ? 40
-                            : 36
-                      : 46,
-                  height: compact
-                      ? comfortable
-                            ? 40
-                            : 36
-                      : 46,
+                  width: compact ? 40 : 46,
+                  height: compact ? 40 : 46,
                   decoration: BoxDecoration(
                     color: recommendation.background,
                     shape: BoxShape.circle,
@@ -252,14 +238,10 @@ class _RecommendationTile extends StatelessWidget {
                   child: Icon(
                     recommendation.icon,
                     color: recommendation.color,
-                    size: compact
-                        ? comfortable
-                              ? 25
-                              : 23
-                        : 30,
+                    size: compact ? 25 : 30,
                   ),
                 ),
-                SizedBox(width: compact ? 9 : 18),
+                SizedBox(width: compact ? 12 : 18),
                 Expanded(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 570),
@@ -267,16 +249,12 @@ class _RecommendationTile extends StatelessWidget {
                       compact
                           ? recommendation.text.replaceAll('\n', ' ')
                           : recommendation.text,
-                      maxLines: compact ? 2 : 2,
+                      maxLines: compact ? 3 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: context.appColors.ink,
-                        fontSize: compact
-                            ? comfortable
-                                  ? 13
-                                  : 12
-                            : 16,
-                        height: 1.15,
+                        fontSize: compact ? 14 : 16,
+                        height: compact ? 1.35 : 1.15,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
