@@ -62,6 +62,21 @@ String environmentErrorMessage(String status) {
   }
 }
 
+bool environmentErrorIsRetryable(String status) => switch (status) {
+  EnvironmentStatus.serverMisconfigured ||
+  EnvironmentStatus.invalidQuery ||
+  EnvironmentStatus.locationNotFound ||
+  EnvironmentStatus.locationUnavailable => false,
+  _ => true,
+};
+
+bool environmentErrorNeedsLocationChoice(String status) => switch (status) {
+  EnvironmentStatus.invalidQuery ||
+  EnvironmentStatus.locationNotFound ||
+  EnvironmentStatus.locationUnavailable => true,
+  _ => false,
+};
+
 typedef EnvironmentLocationResolver = Future<Position?> Function();
 typedef EnvironmentFetcher =
     Future<Map<String, dynamic>?> Function(String query);
@@ -94,8 +109,8 @@ Future<EnvData> loadEnvironment({
 
   final data = await (fetcher ?? EnvironmentService.fetchEnvironment)(query);
   if (data == null) {
-    return const EnvData(
-      location: '',
+    return EnvData(
+      location: requestedQuery,
       weather: Weather.emptyWeather,
       status: EnvironmentStatus.empty,
     );
@@ -105,7 +120,7 @@ Future<EnvData> loadEnvironment({
   if (status != EnvironmentStatus.success) {
     return EnvData(
       status: status is String ? status : EnvironmentStatus.invalidResponse,
-      location: '',
+      location: requestedQuery,
       weather: Weather.emptyWeather,
     );
   }
