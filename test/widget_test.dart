@@ -263,6 +263,12 @@ void main() {
     expect(find.text('Kualitas udara (AQI)'), findsOneWidget);
     expect(find.text('101-150'), findsOneWidget);
     expect(find.text('Tidak sehat bagi kelompok sensitif'), findsWidgets);
+    expect(
+      tester
+          .getTopLeft(find.text('Tidak sehat bagi kelompok sensitif').first)
+          .dy,
+      greaterThan(tester.getTopLeft(find.text('134 AQI')).dy),
+    );
     await tester.tap(find.text('Tutup'));
     await tester.pumpAndSettle();
 
