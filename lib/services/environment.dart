@@ -227,7 +227,7 @@ class EnvironmentService {
   static Future<Map<String, dynamic>?> fetchEnvironment(
     String query, {
     EnvironmentHttpGet httpGet = _defaultEnvironmentHttpGet,
-    Duration timeout = const Duration(seconds: 15),
+    Duration timeout = const Duration(seconds: 20),
   }) async {
     try {
       final baseUri = Uri.parse(Env.environmentApiUrl);
