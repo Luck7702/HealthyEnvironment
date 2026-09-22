@@ -233,8 +233,12 @@ void main() {
 
     await pumpHome(tester);
 
-    expect(find.byType(Scrollable), findsOneWidget);
-    final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+    final recommendationScrollable = find.descendant(
+      of: find.byKey(const Key('recommendations-list')),
+      matching: find.byType(Scrollable),
+    );
+    expect(recommendationScrollable, findsOneWidget);
+    final scrollable = tester.state<ScrollableState>(recommendationScrollable);
     expect(scrollable.position.maxScrollExtent, greaterThan(0));
 
     await tester.drag(

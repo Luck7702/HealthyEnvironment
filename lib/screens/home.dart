@@ -292,7 +292,7 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: shortPhone ? 8 : 14),
                       SizedBox(
-                        height: mobileStatsHeight,
+                        height: mobileStatsHeight + 13,
                         child: EnvStats(
                           weather: envData.weather,
                           compactDashboard: true,
@@ -331,7 +331,8 @@ class HomeScreenState extends State<HomeScreen> {
                         height: statsHeight,
                         child: EnvStats(
                           weather: envData.weather,
-                          compactDashboard: statsHeight < 120,
+                          compactDashboard:
+                              statsHeight < 120 || constraints.maxWidth < 900,
                           cardHeight: statsHeight,
                         ),
                       ),

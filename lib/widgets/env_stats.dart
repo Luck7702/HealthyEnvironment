@@ -5,7 +5,7 @@ import '../config/colors_theme.dart';
 import '../models/weather.dart';
 import 'window_dialog.dart';
 
-class EnvStats extends StatelessWidget {
+class EnvStats extends StatefulWidget {
   final Weather weather;
   final bool compactDashboard;
   final bool comfortableDashboard;
@@ -22,6 +22,22 @@ class EnvStats extends StatelessWidget {
   });
 
   @override
+  State<EnvStats> createState() => _EnvStatsState();
+}
+
+class _EnvStatsState extends State<EnvStats> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  Weather get weather => widget.weather;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -32,10 +48,10 @@ class EnvStats extends StatelessWidget {
             status: _aqiCardStatus(weather.aqi),
             icon: Icons.cloud,
             accent: EnvStatsColors.getAqiAccent(context, weather.aqi),
-            compact: compactDashboard,
-            comfortable: comfortableDashboard,
-            minimal: minimalDashboard,
-            height: cardHeight,
+            compact: widget.compactDashboard,
+            comfortable: widget.comfortableDashboard,
+            minimal: widget.minimalDashboard,
+            height: widget.cardHeight,
             onTap: () => InfoDialog.showMetric(
               context,
               title: 'Kualitas udara (AQI)',
@@ -67,10 +83,10 @@ class EnvStats extends StatelessWidget {
             status: _uvStatus(weather.uv),
             icon: Icons.wb_sunny_outlined,
             accent: EnvStatsColors.getUvAccent(context, weather.uv),
-            compact: compactDashboard,
-            comfortable: comfortableDashboard,
-            minimal: minimalDashboard,
-            height: cardHeight,
+            compact: widget.compactDashboard,
+            comfortable: widget.comfortableDashboard,
+            minimal: widget.minimalDashboard,
+            height: widget.cardHeight,
             onTap: () => InfoDialog.showMetric(
               context,
               title: 'Indeks UV',
@@ -106,10 +122,10 @@ class EnvStats extends StatelessWidget {
               context,
               weather.heatIndex ?? weather.temp,
             ),
-            compact: compactDashboard,
-            comfortable: comfortableDashboard,
-            minimal: minimalDashboard,
-            height: cardHeight,
+            compact: widget.compactDashboard,
+            comfortable: widget.comfortableDashboard,
+            minimal: widget.minimalDashboard,
+            height: widget.cardHeight,
             onTap: () => InfoDialog.showMetric(
               context,
               title: 'Suhu udara',
@@ -141,20 +157,102 @@ class EnvStats extends StatelessWidget {
           ),
         ];
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        final secondaryCards = [
+          _StatCard(
+            label: 'Cuaca',
+            value: _conditionLabel(widget.weather),
+            status: _conditionStatus(widget.weather),
+            icon: _conditionIcon(widget.weather),
+            accent: _conditionAccent(context, widget.weather),
+            compact: widget.compactDashboard,
+            comfortable: widget.comfortableDashboard,
+            minimal: widget.minimalDashboard,
+            height: widget.cardHeight,
+            onTap: () => InfoDialog.showMetric(
+              context,
+              title: 'Kondisi cuaca',
+              currentValue: _conditionLabel(widget.weather),
+              currentStatus: _conditionStatus(widget.weather),
+              definition:
+                  'Kondisi cuaca menunjukkan keadaan atmosfer saat ini, seperti cerah, berawan, hujan, atau badai.',
+              impact:
+                  'Hujan, kabut, dan badai dapat mengurangi jarak pandang serta meningkatkan risiko saat berkendara.',
+              guidance: _conditionGuidance(widget.weather),
+              icon: _conditionIcon(widget.weather),
+              accent: _conditionAccent(context, widget.weather),
+              ranges: const [
+                InfoRange('Normal', 'Cerah, berawan, atau berkabut ringan'),
+                InfoRange('Waspada', 'Hujan, salju, asap, atau kabut tebal'),
+                InfoRange('Bahaya', 'Petir atau cuaca ekstrem'),
+              ],
+              activeRange: _conditionRangeIndex(widget.weather),
+            ),
+          ),
+          _StatCard(
+            label: 'Kelembapan',
+            value: _humidityValue(widget.weather.humidity),
+            status: _humidityStatus(widget.weather.humidity),
+            icon: Icons.water_drop_outlined,
+            accent: _humidityAccent(context, widget.weather.humidity),
+            compact: widget.compactDashboard,
+            comfortable: widget.comfortableDashboard,
+            minimal: widget.minimalDashboard,
+            height: widget.cardHeight,
+            onTap: () => InfoDialog.showMetric(
+              context,
+              title: 'Kelembapan udara',
+              currentValue: _humidityValue(
+                widget.weather.humidity,
+                unavailable: 'Belum tersedia',
+              ),
+              currentStatus: _humidityStatus(widget.weather.humidity),
+              definition:
+                  'Kelembapan menunjukkan banyaknya uap air di udara dibandingkan kapasitas maksimum udara pada suhu saat ini.',
+              impact:
+                  'Udara lembap dapat membuat panas terasa lebih berat. Udara terlalu kering dapat memicu rasa tidak nyaman.',
+              guidance: _humidityGuidance(widget.weather.humidity),
+              icon: Icons.water_drop_outlined,
+              accent: _humidityAccent(context, widget.weather.humidity),
+              ranges: const [
+                InfoRange('<40%', 'Kering'),
+                InfoRange('40-70%', 'Nyaman'),
+                InfoRange('>70%', 'Lembap'),
+              ],
+              activeRange: _humidityRangeIndex(widget.weather.humidity),
+            ),
+          ),
+        ];
+
+        if (!widget.minimalDashboard) {
+          return _CardRow(
+            cards: [...cards, ...secondaryCards],
+            compact: widget.compactDashboard,
+          );
+        }
+
+        return Column(
           children: [
-            for (var i = 0; i < cards.length; i++) ...[
-              Expanded(child: cards[i]),
-              if (i != cards.length - 1)
-                SizedBox(
-                  width: minimalDashboard
-                      ? 10
-                      : compactDashboard
-                      ? 6
-                      : 12,
-                ),
-            ],
+            SizedBox(
+              height: widget.cardHeight,
+              child: PageView(
+                key: const Key('environment-stats-pager'),
+                controller: _pageController,
+                onPageChanged: (page) => setState(() => _currentPage = page),
+                children: [
+                  _CardRow(cards: cards, compact: true, minimal: true),
+                  _CardRow(cards: secondaryCards, compact: true, minimal: true),
+                ],
+              ),
+            ),
+            const SizedBox(height: 7),
+            _PageIndicator(
+              currentPage: _currentPage,
+              onSelect: (page) => _pageController.animateToPage(
+                page,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+              ),
+            ),
           ],
         );
       },
@@ -283,6 +381,185 @@ class EnvStats extends StatelessWidget {
     if (perceivedHeat <= 30) return 'Sesuaikan pakaian dan tetap cukup minum.';
     if (perceivedHeat <= 35) return 'Minum cukup dan beristirahat dari panas.';
     return 'Cari tempat teduh dan kurangi aktivitas fisik berat.';
+  }
+
+  static String _conditionLabel(Weather weather) {
+    final condition = weather.condition?.trim();
+    if (condition == null ||
+        condition.isEmpty ||
+        condition.toLowerCase() == 'not specified') {
+      return '-';
+    }
+
+    final text = condition.toLowerCase();
+    if (RegExp(r'thunder|lightning').hasMatch(text)) return 'Badai petir';
+    if (text.contains('blizzard')) return 'Badai salju';
+    if (RegExp(r'snow|salju').hasMatch(text)) return 'Salju';
+    if (RegExp(r'sleet|ice pellets').hasMatch(text)) return 'Hujan es';
+    if (RegExp(r'drizzle|gerimis').hasMatch(text)) return 'Gerimis';
+    if (RegExp(r'rain|hujan').hasMatch(text)) return 'Hujan';
+    if (RegExp(r'smoke|smoky|haze|asap').hasMatch(text)) return 'Berasap';
+    if (RegExp(r'fog|mist|kabut').hasMatch(text)) return 'Berkabut';
+    if (RegExp(r'overcast').hasMatch(text)) return 'Mendung';
+    if (RegExp(r'cloud|berawan').hasMatch(text)) return 'Berawan';
+    if (RegExp(r'clear|sunny|cerah').hasMatch(text)) return 'Cerah';
+    return condition;
+  }
+
+  static String _conditionStatus(Weather weather) {
+    final severity = weather.componentSeverity['Cuaca'];
+    if (severity == null) return 'Belum tersedia';
+    if (severity >= .75) return 'Bahaya';
+    if (severity >= .5) return 'Waspada';
+    return 'Normal';
+  }
+
+  static int _conditionRangeIndex(Weather weather) {
+    final severity = weather.componentSeverity['Cuaca'];
+    if (severity == null) return -1;
+    if (severity >= .75) return 2;
+    if (severity >= .5) return 1;
+    return 0;
+  }
+
+  static IconData _conditionIcon(Weather weather) {
+    final label = _conditionLabel(weather);
+    if (label == 'Cerah') return Icons.wb_sunny_outlined;
+    if (label == 'Berawan' || label == 'Mendung') return Icons.cloud_outlined;
+    if (label == 'Badai petir') return Icons.thunderstorm_outlined;
+    if (label == 'Berkabut' || label == 'Berasap') return Icons.foggy;
+    if (label == 'Salju') return Icons.ac_unit;
+    if (label == '-') return Icons.cloud_off_outlined;
+    return Icons.umbrella_outlined;
+  }
+
+  static Color _conditionAccent(BuildContext context, Weather weather) {
+    final severity = weather.componentSeverity['Cuaca'];
+    if (severity == null) return context.appColors.muted;
+    if (severity >= .75) return context.appColors.coral;
+    if (severity >= .5) return context.appColors.orange;
+    return context.appColors.green;
+  }
+
+  static String _conditionGuidance(Weather weather) {
+    final severity = weather.componentSeverity['Cuaca'];
+    if (severity == null) return 'Perbarui data sebelum beraktivitas di luar.';
+    if (severity >= .75) return 'Tunda perjalanan dan berlindung di dalam.';
+    if (severity >= .5) {
+      return 'Kurangi kecepatan dan tingkatkan kewaspadaan saat berkendara.';
+    }
+    return 'Aktivitas luar dapat dilakukan seperti biasa.';
+  }
+
+  static String _humidityStatus(double? humidity) {
+    if (humidity == null || humidity < 0 || humidity > 100) {
+      return 'Belum tersedia';
+    }
+    if (humidity < 40) return 'Kering';
+    if (humidity <= 70) return 'Nyaman';
+    return 'Lembap';
+  }
+
+  static String _humidityValue(double? humidity, {String unavailable = '-'}) {
+    if (humidity == null || humidity < 0 || humidity > 100) {
+      return unavailable;
+    }
+    return '${humidity.round()}%';
+  }
+
+  static int _humidityRangeIndex(double? humidity) {
+    if (humidity == null || humidity < 0 || humidity > 100) return -1;
+    if (humidity < 40) return 0;
+    if (humidity <= 70) return 1;
+    return 2;
+  }
+
+  static Color _humidityAccent(BuildContext context, double? humidity) {
+    final range = _humidityRangeIndex(humidity);
+    if (range == -1) return context.appColors.muted;
+    if (range == 1) return context.appColors.green;
+    return context.appColors.orange;
+  }
+
+  static String _humidityGuidance(double? humidity) {
+    final range = _humidityRangeIndex(humidity);
+    if (range == -1) return 'Perbarui data sebelum beraktivitas di luar.';
+    if (range == 0) return 'Minum cukup dan lindungi kulit dari udara kering.';
+    if (range == 2) {
+      return 'Minum cukup dan beristirahat bila panas terasa berat.';
+    }
+    return 'Kelembapan berada dalam rentang nyaman.';
+  }
+}
+
+class _CardRow extends StatelessWidget {
+  final List<Widget> cards;
+  final bool compact;
+  final bool minimal;
+
+  const _CardRow({
+    required this.cards,
+    this.compact = false,
+    this.minimal = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < cards.length; i++) ...[
+          Expanded(child: cards[i]),
+          if (i != cards.length - 1)
+            SizedBox(
+              width: minimal
+                  ? 10
+                  : compact
+                  ? 6
+                  : 12,
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _PageIndicator extends StatelessWidget {
+  final int currentPage;
+  final ValueChanged<int> onSelect;
+
+  const _PageIndicator({required this.currentPage, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Halaman metrik ${currentPage + 1} dari 2',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (var page = 0; page < 2; page++)
+            InkResponse(
+              key: Key('environment-stats-page-$page'),
+              onTap: () => onSelect(page),
+              radius: 14,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: page == currentPage ? 18 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: page == currentPage
+                        ? context.appColors.forest
+                        : context.appColors.muted.withValues(alpha: .35),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
