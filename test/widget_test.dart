@@ -281,4 +281,33 @@ void main() {
     expect(find.text('31-35°C'), findsOneWidget);
     expect(find.text('Panas'), findsWidgets);
   });
+
+  testWidgets('swipe reveals weather and humidity metrics on mobile', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await pumpHome(tester);
+
+    expect(find.text('AQI'), findsOneWidget);
+    expect(find.text('Cuaca'), findsNothing);
+
+    await tester.drag(
+      find.byKey(const Key('environment-stats-pager')),
+      const Offset(-320, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cuaca'), findsOneWidget);
+    expect(find.text('Hujan'), findsOneWidget);
+    expect(find.text('Kelembapan'), findsOneWidget);
+    expect(find.text('68%'), findsOneWidget);
+
+    await tester.tap(find.text('Kelembapan'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kelembapan udara'), findsOneWidget);
+    expect(find.text('40-70%'), findsOneWidget);
+    expect(find.text('Nyaman'), findsWidgets);
+  });
 }
