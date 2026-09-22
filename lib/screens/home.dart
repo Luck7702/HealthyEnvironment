@@ -299,13 +299,7 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
                       Expanded(
-                        child: RecommendationSection(
-                          weather: envData.weather,
-                          footer: const _ReassuranceBanner(
-                            compact: false,
-                            comfortable: false,
-                          ),
-                        ),
+                        child: RecommendationSection(weather: envData.weather),
                       ),
                     ],
                   ],
@@ -803,58 +797,6 @@ class _Skeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.appColors.card.withValues(alpha: .55),
         borderRadius: BorderRadius.circular(circle ? height / 2 : 25),
-      ),
-    );
-  }
-}
-
-class _ReassuranceBanner extends StatelessWidget {
-  final bool compact;
-  final bool comfortable;
-
-  const _ReassuranceBanner({required this.compact, required this.comfortable});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 12 : 20,
-        vertical: compact
-            ? comfortable
-                  ? 10
-                  : 8
-            : 11,
-      ),
-      decoration: BoxDecoration(
-        color: context.appColors.greenSoft,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: context.appColors.greenBorder),
-      ),
-      child: Row(
-        children: [
-          BrandMark(size: compact ? (comfortable ? 31 : 28) : 36),
-          SizedBox(width: compact ? 10 : 18),
-          Expanded(
-            child: Text(
-              'Lingkungan sehat dimulai dari kesadaran kita',
-              style: TextStyle(
-                color: context.appColors.forest,
-                fontSize: compact
-                    ? comfortable
-                          ? 14
-                          : 13
-                    : 16,
-                height: 1.2,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Icon(
-            Icons.chevron_right,
-            color: context.appColors.green,
-            size: compact ? 22 : 27,
-          ),
-        ],
       ),
     );
   }
