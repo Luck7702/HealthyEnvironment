@@ -108,6 +108,102 @@ void main() {
     const Size(1024, 768),
     const Size(1440, 900),
   ]) {
+    testWidgets('server config failure fits at ${size.width}x${size.height}', (
+      WidgetTester tester,
+    ) async {
+      await tester.binding.setSurfaceSize(size);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeScreen(
+            environmentLoader: ({String? query}) async => const EnvData(
+              location: 'Bandung',
+              weather: Weather.emptyWeather,
+              status: EnvironmentStatus.serverMisconfigured,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Bandung'), findsOneWidget);
+      expect(find.text('Layanan belum dikonfigurasi'), findsOneWidget);
+      expect(
+        find.textContaining('Konfigurasi layanan bermasalah'),
+        findsOneWidget,
+      );
+      expect(find.text('Lokasi otomatis gagal.'), findsNothing);
+      expect(find.text('Coba lagi'), findsNothing);
+      expect(find.text('Belum diketahui'), findsNothing);
+    });
+  }
+
+  testWidgets('failed refresh keeps data and reuses active query', (
+    WidgetTester tester,
+  ) async {
+    final key = GlobalKey<HomeScreenState>();
+    final queries = <String?>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeScreen(
+          key: key,
+          environmentLoader: ({String? query}) async {
+            queries.add(query);
+            if (query == null) return environment;
+            return EnvData(
+              location: query,
+              weather: Weather.emptyWeather,
+              status: EnvironmentStatus.networkError,
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await key.currentState!.initializeEnvironment(query: 'Bandung');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ciledug 1'), findsOneWidget);
+    expect(find.textContaining('Koneksi gagal'), findsOneWidget);
+
+    await key.currentState!.initializeEnvironment();
+    await tester.pumpAndSettle();
+
+    expect(queries.sublist(queries.length - 2), ['Bandung', 'Bandung']);
+    expect(find.text('Ciledug 1'), findsOneWidget);
+  });
+
+  testWidgets('unexpected loader exception becomes failure state', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeScreen(
+          environmentLoader: ({String? query}) async {
+            throw StateError('unexpected');
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Data lingkungan tidak tersedia'), findsOneWidget);
+    expect(find.textContaining('Koneksi gagal'), findsOneWidget);
+  });
+
+  for (final size in <Size>[
+    const Size(320, 700),
+    const Size(375, 667),
+    const Size(390, 844),
+    const Size(407, 904),
+    const Size(768, 900),
+    const Size(1024, 768),
+    const Size(1440, 900),
+  ]) {
     testWidgets('fits fixed dashboard at ${size.width}x${size.height}', (
       WidgetTester tester,
     ) async {

@@ -33,14 +33,17 @@ class HomeScreenState extends State<HomeScreen> {
   Timer? _refreshTimer;
   bool loading = true;
   bool refreshing = false;
-  String? errorMessage;
+  String? errorStatus;
+  String? _activeQuery;
+  String? _locationHint;
   int _environmentRequestId = 0;
 
   @override
   void initState() {
     super.initState();
 
-    initializeEnvironment(query: readSavedLocation());
+    _activeQuery = readSavedLocation();
+    initializeEnvironment(query: _activeQuery);
     _refreshTimer = Timer.periodic(
       const Duration(minutes: 5),
       (_) => initializeEnvironment(showLoading: false),
@@ -57,32 +60,47 @@ class HomeScreenState extends State<HomeScreen> {
     String? query,
     bool showLoading = true,
   }) async {
+    final trimmedQuery = query?.trim();
+    if (trimmedQuery != null && trimmedQuery.isNotEmpty) {
+      _activeQuery = trimmedQuery;
+    }
+    final effectiveQuery = _activeQuery;
     final requestId = ++_environmentRequestId;
     final hasData = envData.status == EnvironmentStatus.success;
     if (showLoading && !hasData && mounted) {
       setState(() {
         loading = true;
         refreshing = false;
-        errorMessage = null;
+        errorStatus = null;
       });
     } else if (mounted) {
       setState(() => refreshing = true);
     }
 
-    final freshData = await (widget.environmentLoader ?? loadEnvironment)(
-      query: query,
-    );
+    late final EnvData freshData;
+    try {
+      freshData = await (widget.environmentLoader ?? loadEnvironment)(
+        query: effectiveQuery,
+      );
+    } catch (_) {
+      freshData = EnvData(
+        location: effectiveQuery ?? '',
+        weather: Weather.emptyWeather,
+        status: EnvironmentStatus.networkError,
+      );
+    }
     if (!mounted || requestId != _environmentRequestId) return;
 
     if (freshData.status == EnvironmentStatus.success) {
-      if (query != null && query.trim().isNotEmpty) {
-        saveLocation(query.trim());
+      if (effectiveQuery != null && effectiveQuery.isNotEmpty) {
+        saveLocation(effectiveQuery);
       }
       setState(() {
         envData = freshData;
         loading = false;
         refreshing = false;
-        errorMessage = null;
+        errorStatus = null;
+        _locationHint = null;
       });
       return;
     }
@@ -90,7 +108,10 @@ class HomeScreenState extends State<HomeScreen> {
     setState(() {
       loading = false;
       refreshing = false;
-      errorMessage = environmentErrorMessage(freshData.status);
+      errorStatus = freshData.status;
+      _locationHint = freshData.location.trim().isNotEmpty
+          ? freshData.location.trim()
+          : effectiveQuery;
     });
   }
 
@@ -191,6 +212,17 @@ class HomeScreenState extends State<HomeScreen> {
                   : tallPhone
                   ? 108.0
                   : 98.0;
+              final hasData = envData.status == EnvironmentStatus.success;
+              final failureMessage = errorStatus == null
+                  ? null
+                  : environmentErrorMessage(errorStatus!);
+              final displayLocation = hasData
+                  ? envData.location
+                  : (_locationHint ?? '');
+              final locationKnown = displayLocation.isNotEmpty;
+              final retryable =
+                  errorStatus == null ||
+                  environmentErrorIsRetryable(errorStatus!);
 
               if (loading && envData.status != EnvironmentStatus.success) {
                 return _LoadingView(
@@ -223,23 +255,29 @@ class HomeScreenState extends State<HomeScreen> {
                       compact: phone,
                       comfortable: tallPhone,
                       minimal: phone,
-                      available: envData.status == EnvironmentStatus.success,
-                      location: envData.location,
+                      available: locationKnown,
+                      location: displayLocation,
                       updatedAt: envData.localTime,
+                      statusMessage: hasData && failureMessage != null
+                          ? 'Data terakhir ${envData.localTime} · $failureMessage'
+                          : null,
                       loading: loading || refreshing,
+                      retryEnabled: retryable,
                       onRetry: () => initializeEnvironment(),
                       onTap: _openLocationSearch,
                     ),
-                    if (errorMessage != null) ...[
+                    if (!hasData && errorStatus != null) ...[
                       SizedBox(height: gap),
-                      _InlineError(
-                        compact: phone,
-                        message: errorMessage!,
-                        onRetry: () => initializeEnvironment(),
-                        onChooseLocation: _openLocationSearch,
+                      Expanded(
+                        child: _EnvironmentUnavailable(
+                          compact: phone,
+                          status: errorStatus!,
+                          message: failureMessage!,
+                          onRetry: () => initializeEnvironment(),
+                          onChooseLocation: _openLocationSearch,
+                        ),
                       ),
-                    ],
-                    if (phone) ...[
+                    ] else if (phone) ...[
                       SizedBox(height: shortPhone ? 6 : 10),
                       SizedBox(
                         height: mobileRiskSize,
@@ -658,14 +696,16 @@ class _SectionHeading extends StatelessWidget {
   }
 }
 
-class _InlineError extends StatelessWidget {
+class _EnvironmentUnavailable extends StatelessWidget {
   final bool compact;
+  final String status;
   final String message;
   final VoidCallback onRetry;
   final VoidCallback onChooseLocation;
 
-  const _InlineError({
+  const _EnvironmentUnavailable({
     required this.compact,
+    required this.status,
     required this.message,
     required this.onRetry,
     required this.onChooseLocation,
@@ -673,47 +713,88 @@ class _InlineError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: context.appColors.coralSoft,
-      borderRadius: BorderRadius.circular(14),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 10 : 15,
-          vertical: compact ? 5 : 8,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              color: context.appColors.coral,
-              size: compact ? 19 : 23,
-            ),
-            SizedBox(width: compact ? 6 : 10),
-            Expanded(
-              child: Text(
-                compact ? 'Lokasi otomatis gagal.' : message,
-                maxLines: compact ? 1 : 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: context.appColors.ink,
-                  fontSize: compact ? 11 : 13,
-                  fontWeight: FontWeight.w500,
-                ),
+    final retryable = environmentErrorIsRetryable(status);
+    final needsLocationChoice = environmentErrorNeedsLocationChoice(status);
+    final title = status == EnvironmentStatus.serverMisconfigured
+        ? 'Layanan belum dikonfigurasi'
+        : needsLocationChoice
+        ? 'Lokasi perlu diperbarui'
+        : 'Data lingkungan tidak tersedia';
+
+    return Center(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: compact ? 520 : 680),
+          child: Material(
+            color: context.appColors.card,
+            borderRadius: BorderRadius.circular(24),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 22 : 36,
+                vertical: compact ? 24 : 34,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: compact ? 58 : 68,
+                    height: compact ? 58 : 68,
+                    decoration: BoxDecoration(
+                      color: context.appColors.coralSoft,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.cloud_off_rounded,
+                      color: context.appColors.coral,
+                      size: compact ? 30 : 36,
+                    ),
+                  ),
+                  SizedBox(height: compact ? 14 : 18),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.appColors.ink,
+                      fontSize: compact ? 20 : 24,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.appColors.muted,
+                      fontSize: compact ? 14 : 16,
+                      height: 1.35,
+                    ),
+                  ),
+                  if (retryable || needsLocationChoice) ...[
+                    SizedBox(height: compact ? 18 : 22),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 10,
+                      runSpacing: 8,
+                      children: [
+                        if (retryable)
+                          FilledButton.icon(
+                            onPressed: onRetry,
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Coba lagi'),
+                          ),
+                        if (needsLocationChoice)
+                          OutlinedButton.icon(
+                            onPressed: onChooseLocation,
+                            icon: const Icon(Icons.location_on_outlined),
+                            label: const Text('Pilih lokasi'),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (compact)
-              TextButton(
-                onPressed: onChooseLocation,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  minimumSize: const Size(0, 34),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text('Pilih lokasi'),
-              )
-            else
-              TextButton(onPressed: onRetry, child: const Text('Coba lagi')),
-          ],
+          ),
         ),
       ),
     );

@@ -18,6 +18,15 @@ void main() {
       environmentErrorMessage(EnvironmentStatus.empty),
       contains('Data lingkungan'),
     );
+    expect(
+      environmentErrorIsRetryable(EnvironmentStatus.serverMisconfigured),
+      isFalse,
+    );
+    expect(environmentErrorIsRetryable(EnvironmentStatus.networkError), isTrue);
+    expect(
+      environmentErrorNeedsLocationChoice(EnvironmentStatus.locationNotFound),
+      isTrue,
+    );
   });
 
   test('empty weather explicitly represents unavailable readings', () {
@@ -80,5 +89,15 @@ void main() {
       ),
     );
     expect(result?['status'], EnvironmentStatus.locationNotFound);
+  });
+
+  test('failed manual request preserves requested location', () async {
+    final data = await loadEnvironment(
+      query: 'Bandung',
+      fetcher: (_) async => {'status': EnvironmentStatus.serverMisconfigured},
+    );
+
+    expect(data.status, EnvironmentStatus.serverMisconfigured);
+    expect(data.location, 'Bandung');
   });
 }

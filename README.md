@@ -58,7 +58,7 @@ Client calls `GET /api/environment?q=...`. `ENVIRONMENT_API_URL` defaults to `/a
 
 ## Environment API
 
-`api/environment.js` is a Vercel Node.js Function. Production and Preview use Vercel environment variables: configure `WEATHER_API_KEY` and `CORS_ORIGINS` in Vercel, then deploy with `vercel`. Deploy build script [`scripts/vercel-build.sh`](scripts/vercel-build.sh) installs FVM-selected Flutter SDK and builds `build/web`; no local key upload is needed.
+`api/environment.js` is a Vercel Node.js Function. Production and Preview use Vercel environment variables: configure `WEATHER_API_KEY` and `CORS_ORIGINS` in Vercel, then deploy with `vercel`. Transient upstream failures receive one retry within a 15-second total budget; `WEATHER_TIMEOUT_MS`, `WEATHER_TOTAL_TIMEOUT_MS`, and `WEATHER_RETRY_DELAY_MS` tune that policy. Deploy build script [`scripts/vercel-build.sh`](scripts/vercel-build.sh) installs FVM-selected Flutter SDK and builds `build/web`; no local key upload is needed.
 
 Function accepts one bounded `q` parameter containing a city or latitude/longitude pair. It uses five-minute in-memory cache, identical in-flight request dedupe, max 256 cache entries, max 8 concurrent upstream calls, single-process global limit 60 upstream requests/minute, and per-IP limit 30 requests/minute with max 5,000 tracked IP buckets. Limits and cache are per Vercel instance, not global across scaled instances; use an external gateway for global enforcement.
 

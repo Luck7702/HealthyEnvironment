@@ -65,7 +65,9 @@ class LocationBar extends StatelessWidget {
   final bool available;
   final String location;
   final String updatedAt;
+  final String? statusMessage;
   final bool loading;
+  final bool retryEnabled;
   final VoidCallback onRetry;
   final VoidCallback onTap;
 
@@ -77,7 +79,9 @@ class LocationBar extends StatelessWidget {
     required this.available,
     required this.location,
     required this.updatedAt,
+    this.statusMessage,
     required this.loading,
+    this.retryEnabled = true,
     required this.onRetry,
     required this.onTap,
   });
@@ -98,7 +102,9 @@ class LocationBar extends StatelessWidget {
                 : narrow
                 ? 'Pilih lokasi'
                 : 'Lokasi belum tersedia';
-            final subtitle = available && updatedAt.isNotEmpty
+            final subtitle = statusMessage != null
+                ? statusMessage!
+                : available && updatedAt.isNotEmpty
                 ? narrow
                       ? 'Diperbarui $updatedAt'
                       : 'Diperbarui hari ini, $updatedAt'
@@ -146,13 +152,32 @@ class LocationBar extends StatelessWidget {
                             color: context.appColors.green,
                           ),
                         )
+                      else if (statusMessage != null && retryEnabled)
+                        IconButton(
+                          onPressed: onRetry,
+                          tooltip: 'Coba perbarui lagi',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(
+                            width: 38,
+                            height: 38,
+                          ),
+                          icon: Icon(
+                            Icons.refresh_rounded,
+                            color: context.appColors.coral,
+                            size: 24,
+                          ),
+                        )
                       else
                         Text(
-                          available && updatedAt.isNotEmpty
+                          statusMessage != null
+                              ? 'Pembaruan gagal'
+                              : available && updatedAt.isNotEmpty
                               ? updatedAt
                               : 'Pilih lokasi',
                           style: TextStyle(
-                            color: context.appColors.muted,
+                            color: statusMessage != null
+                                ? context.appColors.coral
+                                : context.appColors.muted,
                             fontSize: comfortable ? 14 : 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -232,7 +257,7 @@ class LocationBar extends StatelessWidget {
                     SizedBox(width: narrow ? 5 : 12),
                     if (narrow)
                       IconButton(
-                        onPressed: loading ? null : onRetry,
+                        onPressed: loading || !retryEnabled ? null : onRetry,
                         tooltip: 'Perbarui data',
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints.tightFor(
@@ -256,7 +281,7 @@ class LocationBar extends StatelessWidget {
                       )
                     else
                       TextButton.icon(
-                        onPressed: loading ? null : onRetry,
+                        onPressed: loading || !retryEnabled ? null : onRetry,
                         style: TextButton.styleFrom(
                           foregroundColor: context.appColors.muted,
                           padding: const EdgeInsets.symmetric(horizontal: 7),

@@ -15,7 +15,9 @@ if (localDevelopment) {
 
 const API_HOST = 'api.weatherapi.com';
 const API_PATH = '/v1/current.json';
-const REQUEST_TIMEOUT_MS = positiveInt(process.env.WEATHER_TIMEOUT_MS, 6000, 1000, 15000);
+const REQUEST_TIMEOUT_MS = positiveInt(process.env.WEATHER_TIMEOUT_MS, 10000, 1000, 10000);
+const TOTAL_REQUEST_BUDGET_MS = positiveInt(process.env.WEATHER_TOTAL_TIMEOUT_MS, 15000, 2000, 30000);
+const RETRY_DELAY_MS = positiveInt(process.env.WEATHER_RETRY_DELAY_MS, 300, 100, 2000);
 const CACHE_TTL_MS = positiveInt(process.env.CACHE_TTL_MS, 5 * 60 * 1000, 1000, 60 * 60 * 1000);
 const MAX_CACHE_ENTRIES = positiveInt(process.env.MAX_CACHE_ENTRIES, 256, 8, 5000);
 const MAX_CONCURRENT_UPSTREAM = positiveInt(process.env.MAX_CONCURRENT_UPSTREAM, 8, 1, 100);
@@ -137,7 +139,11 @@ function publicWeather(body) {
   return { location: { name: locationName, localtime }, current: safeCurrent };
 }
 
-function upstream(query) {
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function upstream(query, timeoutMs) {
   return new Promise((resolve, reject) => {
     const params = new URLSearchParams({ key: WEATHER_API_KEY, q: query, aqi: 'yes' });
     const request = https.get({ hostname: API_HOST, path: `${API_PATH}?${params}`, method: 'GET', headers: { Accept: 'application/json' } }, (response) => {
@@ -146,12 +152,47 @@ function upstream(query) {
       response.on('data', (chunk) => { if (data.length < 1024 * 1024) data += chunk; });
       response.on('end', () => resolve({ status: response.statusCode || 0, body: data }));
     });
-    request.setTimeout(REQUEST_TIMEOUT_MS, () => request.destroy(new Error('timeout')));
+    request.setTimeout(timeoutMs, () => request.destroy(new Error('timeout')));
     request.on('error', reject);
   });
 }
 
-async function fetchWeather(query) {
+function parseUpstreamResponse(response) {
+  if (response.status === 404) {
+    return { retryable: false, result: { status: 404, error: errorBody('location_not_found', 'Location not found') } };
+  }
+  if (response.status === 429) {
+    return { retryable: false, result: { status: 429, retryAfter: 60, error: errorBody('rate_limited', 'Weather service rate limit reached') } };
+  }
+  if (response.status >= 500) {
+    const timeout = response.status === 504;
+    return {
+      retryable: true,
+      result: { status: timeout ? 504 : 502, error: errorBody(timeout ? 'upstream_timeout' : 'upstream_unavailable', timeout ? 'Weather service timed out' : 'Weather service unavailable') },
+    };
+  }
+  let body;
+  try { body = JSON.parse(response.body); } catch {
+    return { retryable: false, result: { status: 502, error: errorBody('invalid_response', 'Weather service returned invalid data') } };
+  }
+  const upstreamError = body && typeof body === 'object' ? body.error : null;
+  if (upstreamError && [2007, 2008, 2009].includes(upstreamError.code)) {
+    return { retryable: false, result: { status: 429, retryAfter: 60, error: errorBody('rate_limited', 'Weather service rate limit reached') } };
+  }
+  if (upstreamError && upstreamError.code === 1006) {
+    return { retryable: false, result: { status: 404, error: errorBody('location_not_found', 'Location not found') } };
+  }
+  if (response.status < 200 || response.status >= 300) {
+    return { retryable: false, result: { status: 502, error: errorBody('upstream_unavailable', 'Weather service unavailable') } };
+  }
+  const safe = publicWeather(body);
+  if (!safe) {
+    return { retryable: false, result: { status: 502, error: errorBody('invalid_response', 'Weather service returned incomplete data') } };
+  }
+  return { retryable: false, result: { status: 200, body: safe } };
+}
+
+async function fetchWeather(query, options = {}) {
   const cached = cache.get(query.normalized);
   if (cached && cached.expires > Date.now()) return { status: 200, body: cached.body };
   if (cached) cache.delete(query.normalized);
@@ -160,28 +201,49 @@ async function fetchWeather(query) {
   const task = (async () => {
     activeUpstream += 1;
     try {
-      const response = await upstream(query.raw);
-      if (response.status === 404) return { status: 404, error: errorBody('location_not_found', 'Location not found') };
-      let body;
-      try { body = JSON.parse(response.body); } catch { return { status: 502, error: errorBody('invalid_response', 'Weather service returned invalid data') }; }
-      if (response.status === 429 || body.error && [2007, 2008, 2009].includes(body.error.code)) return { status: 429, retryAfter: 60, error: errorBody('rate_limited', 'Weather service rate limit reached') };
-      if (body.error && body.error.code === 1006) return { status: 404, error: errorBody('location_not_found', 'Location not found') };
-      if (response.status < 200 || response.status >= 300) return { status: 502, error: errorBody('upstream_unavailable', 'Weather service unavailable') };
-      const safe = publicWeather(body);
-      if (!safe) return { status: 502, error: errorBody('invalid_response', 'Weather service returned incomplete data') };
-      cache.set(query.normalized, { expires: Date.now() + CACHE_TTL_MS, body: safe });
-      while (cache.size > MAX_CACHE_ENTRIES) cache.delete(cache.keys().next().value);
-      return { status: 200, body: safe };
-    } catch (err) {
-      const timeout = err && err.message === 'timeout';
-      return { status: timeout ? 504 : 502, error: errorBody(timeout ? 'upstream_timeout' : 'upstream_unavailable', timeout ? 'Weather service timed out' : 'Weather service unavailable') };
+      const request = options.request || upstream;
+      const now = options.now || Date.now;
+      const sleep = options.wait || wait;
+      const random = options.random || Math.random;
+      const attemptTimeoutMs = options.attemptTimeoutMs || REQUEST_TIMEOUT_MS;
+      const totalBudgetMs = options.totalBudgetMs || TOTAL_REQUEST_BUDGET_MS;
+      const retryDelayMs = options.retryDelayMs || RETRY_DELAY_MS;
+      const started = now();
+      let lastResult;
+
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const remaining = totalBudgetMs - (now() - started);
+        if (remaining <= 0) break;
+        try {
+          const response = await request(query.raw, Math.min(attemptTimeoutMs, remaining));
+          const outcome = parseUpstreamResponse(response);
+          lastResult = outcome.result;
+          if (!outcome.retryable || attempt === 1) break;
+        } catch (err) {
+          const timeout = err && err.message === 'timeout';
+          lastResult = { status: timeout ? 504 : 502, error: errorBody(timeout ? 'upstream_timeout' : 'upstream_unavailable', timeout ? 'Weather service timed out' : 'Weather service unavailable') };
+          if (attempt === 1) break;
+        }
+
+        const budgetAfterAttempt = totalBudgetMs - (now() - started);
+        const retryDelay = Math.min(retryDelayMs + Math.floor(random() * 201), Math.max(0, budgetAfterAttempt - 1));
+        if (retryDelay <= 0) break;
+        await sleep(retryDelay);
+      }
+
+      const result = lastResult || { status: 504, error: errorBody('upstream_timeout', 'Weather service timed out') };
+      if (result.status === 200) {
+        cache.set(query.normalized, { expires: Date.now() + CACHE_TTL_MS, body: result.body });
+        while (cache.size > MAX_CACHE_ENTRIES) cache.delete(cache.keys().next().value);
+      }
+      return result;
     } finally { activeUpstream -= 1; }
   })();
   inflight.set(query.normalized, task);
   try { return await task; } finally { inflight.delete(query.normalized); }
 }
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   const headers = corsHeaders(req);
   let url;
   try { url = new URL(req.url || '', 'https://vercel.local'); } catch { return json(res, 404, errorBody('invalid_request', 'Invalid request'), headers); }
@@ -199,4 +261,7 @@ module.exports = async function handler(req, res) {
   if (limited) return json(res, 429, errorBody('rate_limited', 'Too many requests'), { ...headers, 'Retry-After': String(limited.retryAfter) });
   const result = await fetchWeather(query);
   return json(res, result.status, result.error || result.body, result.retryAfter ? { ...headers, 'Retry-After': String(result.retryAfter) } : headers);
-};
+}
+
+module.exports = handler;
+module.exports._test = { fetchWeather, parseUpstreamResponse };
