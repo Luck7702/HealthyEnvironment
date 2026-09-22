@@ -37,6 +37,28 @@ void main() {
       expect(weather.getRiskLevel, 'Rendah');
     });
 
+    test('humidity raises heat risk through heat index', () {
+      const humid = Weather(aqi: 20, uv: 1, temp: 32, humidity: 80);
+      const dry = Weather(aqi: 20, uv: 1, temp: 32, humidity: 35);
+
+      expect(humid.heatIndex, closeTo(44.4, 0.1));
+      expect(dry.heatIndex, closeTo(31.5, 0.1));
+      expect(humid.getRiskLevel, 'Tinggi');
+      expect(dry.getRiskLevel, 'Sedang');
+    });
+
+    test('temperature risk falls back to air temperature without humidity', () {
+      const weather = Weather(aqi: 20, uv: 1, temp: 32);
+      expect(weather.heatIndex, isNull);
+      expect(weather.getRiskLevel, 'Sedang');
+    });
+
+    test('invalid humidity does not distort temperature risk', () {
+      const weather = Weather(aqi: 20, uv: 1, temp: 32, humidity: 101);
+      expect(weather.heatIndex, isNull);
+      expect(weather.getRiskLevel, 'Sedang');
+    });
+
     test('unsupported condition does not downgrade complete core readings', () {
       const weather = Weather(
         aqi: 40,
