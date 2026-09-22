@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../config/app_theme.dart';
 import '../models/weather.dart';
 
 class RecommendationSection extends StatelessWidget {
@@ -6,86 +8,195 @@ class RecommendationSection extends StatelessWidget {
 
   const RecommendationSection({super.key, required this.weather});
 
-  List<String> get getRecommendations {
-    if (weather.riskScore == 0) {
-      debugPrint("yes");
-      return [];
+  List<_Recommendation> get _recommendations {
+    final result = <_Recommendation>[];
+
+    if (weather.aqi >= 100) {
+      result.add(
+        _Recommendation(
+          icon: Icons.groups_outlined,
+          color: AppColors.green,
+          background: AppColors.greenSoft,
+          text: weather.aqi >= 150
+              ? 'Kurangi aktivitas luar saat kualitas udara memburuk.'
+              : 'Kelompok sensitif sebaiknya kurangi\naktivitas luar.',
+        ),
+      );
     }
 
-    List<String> recs = [];
-
-    if (weather.aqi > 150) {
-      recs.add("Kualitas udara tidak sehat, pastikan menggunakan masker ");
-    } else if (weather.aqi > 120) {
-      recs.add("Kualitas udara sedikit kurang baik");
+    if (weather.uv >= 6) {
+      result.add(
+        const _Recommendation(
+          icon: Icons.wb_sunny_outlined,
+          color: AppColors.orange,
+          background: AppColors.orangeSoft,
+          text: 'Gunakan pelindung UV saat berada di luar.',
+        ),
+      );
     }
 
-    if (weather.uv > 7) {
-      recs.add("Gunakan pelindung dari sinar matahari");
-    }
-    if (weather.uv > 4) {
-      recs.add("Hindari paparan matahari langsung");
-    }
-
-    if (weather.temp >= 30) {
-      recs.add("Perbanyak minum air (suhu panas)");
-    } else if (weather.temp < 15) {
-      recs.add("Suhu udara cukup dingin, gunakan pakaian hangat");
-    }
-    if (weather.humidity < 40) {
-      recs.add("Perbanyak minum air (udara kering)");
+    if (weather.temp >= 30 || weather.humidity < 40) {
+      result.add(
+        const _Recommendation(
+          icon: Icons.water_drop_outlined,
+          color: AppColors.blue,
+          background: AppColors.blueSoft,
+          text: 'Minum cukup dan beristirahat dari panas.',
+        ),
+      );
     }
 
-    if (weather.condition.contains("rain") ||
-        weather.condition.contains("Rain")) {
-      recs.add("Waspada hujan, berhati-hati saat berkendara");
+    if (weather.condition.toLowerCase().contains('rain')) {
+      result.add(
+        const _Recommendation(
+          icon: Icons.cloudy_snowing,
+          color: AppColors.blue,
+          background: AppColors.blueSoft,
+          text: 'Waspadai hujan. Berhati-hati saat berkendara.',
+        ),
+      );
     }
 
-    if (weather.getRiskLevel == "Tinggi") {
-      recs.add("Risiko cuaca tinggi, pastikan jaga kesehatan");
+    if (result.isEmpty) {
+      result.add(
+        const _Recommendation(
+          icon: Icons.favorite_outline,
+          color: AppColors.green,
+          background: AppColors.greenSoft,
+          text: 'Kondisi relatif aman. Tetap jaga kesehatan.',
+        ),
+      );
     }
 
-    if (recs.isEmpty) {
-      recs.add("Kondisi relatif aman, tetap jaga kesehatan");
-    }
-
-    return recs;
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Saran untuk Anda",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          "Berdasarkan kondisi lingkungan saat ini",
-          style: TextStyle(color: Colors.grey),
-        ),
-        const SizedBox(height: 16),
-        ...getRecommendations.map((r) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.green.withOpacity(0.25)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 520;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Saran untuk Anda',
+              style: TextStyle(
+                color: AppColors.forest,
+                fontSize: narrow ? 26 : 31,
+                height: 1.1,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'Risiko berdasarkan data lingkungan saat ini.',
+              style: TextStyle(
+                color: AppColors.muted,
+                fontSize: narrow ? 16 : 19,
+                height: 1.2,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 15),
+            ..._recommendations.map(
+              (recommendation) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _RecommendationTile(
+                  recommendation: recommendation,
+                  narrow: narrow,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _Recommendation {
+  final IconData icon;
+  final Color color;
+  final Color background;
+  final String text;
+
+  const _Recommendation({
+    required this.icon,
+    required this.color,
+    required this.background,
+    required this.text,
+  });
+}
+
+class _RecommendationTile extends StatelessWidget {
+  final _Recommendation recommendation;
+  final bool narrow;
+
+  const _RecommendationTile({
+    required this.recommendation,
+    required this.narrow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(21),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(21),
+        onTap: () {},
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: narrow ? 72 : 88),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: narrow ? 14 : 23,
+              vertical: narrow ? 12 : 14,
             ),
             child: Row(
               children: [
-                const Icon(Icons.auto_awesome, color: Colors.green),
-                const SizedBox(width: 12),
-                Expanded(child: Text(r)),
+                Container(
+                  width: narrow ? 48 : 57,
+                  height: narrow ? 48 : 57,
+                  decoration: BoxDecoration(
+                    color: recommendation.background,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    recommendation.icon,
+                    color: recommendation.color,
+                    size: narrow ? 31 : 38,
+                  ),
+                ),
+                SizedBox(width: narrow ? 14 : 52),
+                Expanded(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 570),
+                    child: Text(
+                      narrow
+                          ? recommendation.text.replaceAll('\n', ' ')
+                          : recommendation.text,
+                      style: TextStyle(
+                        color: AppColors.ink,
+                        fontSize: narrow ? 17 : 22,
+                        height: 1.2,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: narrow ? 8 : 12),
+                const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.muted,
+                  size: 29,
+                ),
               ],
             ),
-          );
-        }),
-      ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,8 +1,8 @@
 class Weather {
   final int aqi;
-  final int uv;
-  final int temp;
-  final int humidity;
+  final double uv;
+  final double temp;
+  final double humidity;
   final String condition;
 
   Weather({
@@ -15,12 +15,9 @@ class Weather {
 
   double get riskScore {
     double score = 0;
-    score += ((aqi - 70) / 80).clamp(0, 1.0) *0.5; 
-    // Score increases in an increment within range AQI 70 (0%) to AQI 140 (100%) which contributes to top score of 0.4
-
-    score += ((uv - 4) / 3).clamp(0, 1.0) * 0.3; 
-
-    score += ((temp - 27) / 4).clamp(0, 1.0) * 0.2; 
+    score += ((aqi - 50) / 100).clamp(0, 1.0) * 0.5;
+    score += ((uv - 3) / 8).clamp(0, 1.0) * 0.3;
+    score += ((temp - 25) / 10).clamp(0, 1.0) * 0.2;
 
     return score;
   }
