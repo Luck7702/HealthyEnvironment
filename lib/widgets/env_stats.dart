@@ -7,104 +7,145 @@ import 'window_dialog.dart';
 
 class EnvStats extends StatelessWidget {
   final Weather weather;
+  final bool compactDashboard;
+  final bool comfortableDashboard;
+  final bool minimalDashboard;
+  final double? cardHeight;
 
-  const EnvStats({super.key, required this.weather});
+  const EnvStats({
+    super.key,
+    required this.weather,
+    this.compactDashboard = false,
+    this.comfortableDashboard = false,
+    this.minimalDashboard = false,
+    this.cardHeight,
+  });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final narrow = constraints.maxWidth < 520;
-        final compact = constraints.maxWidth < 680;
         final cards = [
           _StatCard(
             label: 'AQI',
-            value: '${weather.aqi}',
-            status: _aqiStatus(weather.aqi),
-            description: weather.aqi >= 100
-                ? 'Kualitas udara\nperlu diperhatikan.'
-                : 'Kualitas udara\ntergolong baik.',
+            value: weather.aqi?.toString() ?? '-',
+            status: _aqiCardStatus(weather.aqi),
             icon: Icons.cloud,
             accent: EnvStatsColors.getAqiAccent(weather.aqi),
-            dense: narrow,
-            onTap: () => InfoDialog.show(
+            compact: compactDashboard,
+            comfortable: comfortableDashboard,
+            minimal: minimalDashboard,
+            height: cardHeight,
+            onTap: () => InfoDialog.showMetric(
               context,
-              title: 'Apa itu AQI?',
-              message:
-                  'AQI adalah indeks yang menunjukkan tingkat kebersihan atau pencemaran udara. Semakin tinggi angkanya, semakin besar perhatian yang dibutuhkan.',
+              title: 'Kualitas udara (AQI)',
+              currentValue: weather.aqi == null
+                  ? 'Belum tersedia'
+                  : '${weather.aqi} AQI',
+              currentStatus: _aqiStatus(weather.aqi),
+              definition:
+                  'AQI memperkirakan kualitas udara dari konsentrasi PM2.5 dan PM10 saat ini. Nilai ini bukan AQI harian resmi.',
+              impact:
+                  'Nilai tinggi dapat mengiritasi mata dan saluran napas. Anak, lansia, dan orang dengan gangguan pernapasan lebih rentan.',
+              guidance: _aqiGuidance(weather.aqi),
               icon: Icons.cloud_outlined,
+              accent: EnvStatsColors.getAqiAccent(weather.aqi),
+              ranges: const [
+                InfoRange('0-50', 'Baik'),
+                InfoRange('51-100', 'Sedang'),
+                InfoRange('101-150', 'Tidak sehat bagi kelompok sensitif'),
+                InfoRange('151-200', 'Tidak sehat'),
+                InfoRange('201-300', 'Sangat tidak sehat'),
+                InfoRange('301+', 'Berbahaya'),
+              ],
+              activeRange: _aqiRangeIndex(weather.aqi),
             ),
           ),
           _StatCard(
             label: 'UV',
-            value: weather.uv.toStringAsFixed(1),
+            value: weather.uv?.toStringAsFixed(1) ?? '-',
             status: _uvStatus(weather.uv),
-            description: weather.uv >= 6
-                ? 'Risiko paparan\nUV tinggi.'
-                : 'Risiko paparan\nUV rendah.',
             icon: Icons.wb_sunny_outlined,
             accent: EnvStatsColors.getUvAccent(weather.uv),
-            dense: narrow,
-            onTap: () => InfoDialog.show(
+            compact: compactDashboard,
+            comfortable: comfortableDashboard,
+            minimal: minimalDashboard,
+            height: cardHeight,
+            onTap: () => InfoDialog.showMetric(
               context,
-              title: 'Apa itu UV?',
-              message:
-                  'UV Index menunjukkan intensitas radiasi ultraviolet dari matahari. Gunakan pelindung saat indeks UV tinggi.',
+              title: 'Indeks UV',
+              currentValue: weather.uv == null
+                  ? 'Belum tersedia'
+                  : weather.uv!.toStringAsFixed(1),
+              currentStatus: _uvStatus(weather.uv),
+              definition:
+                  'Indeks UV menunjukkan intensitas radiasi ultraviolet matahari yang dapat mengenai kulit dan mata.',
+              impact:
+                  'Paparan tinggi meningkatkan risiko kulit terbakar dan kerusakan mata. Dampak dapat terjadi lebih cepat saat matahari terik.',
+              guidance: _uvGuidance(weather.uv),
               icon: Icons.wb_sunny_outlined,
+              accent: EnvStatsColors.getUvAccent(weather.uv),
+              ranges: const [
+                InfoRange('0-2', 'Rendah'),
+                InfoRange('3-5', 'Sedang'),
+                InfoRange('6-7', 'Tinggi'),
+                InfoRange('8-10', 'Sangat tinggi'),
+                InfoRange('11+', 'Ekstrem'),
+              ],
+              activeRange: _uvRangeIndex(weather.uv),
             ),
           ),
           _StatCard(
             label: 'Suhu',
-            value: '${weather.temp.toStringAsFixed(1)}°C',
+            value: weather.temp == null
+                ? '-'
+                : '${weather.temp!.toStringAsFixed(1)}°C',
             status: _temperatureStatus(weather.temp),
-            description: weather.temp >= 30
-                ? 'Cuaca panas,\njaga hidrasi.'
-                : 'Suhu terasa\nnyaman.',
             icon: Icons.thermostat_outlined,
             accent: EnvStatsColors.getTempAccent(weather.temp),
-            dense: narrow,
-            onTap: () => InfoDialog.show(
+            compact: compactDashboard,
+            comfortable: comfortableDashboard,
+            minimal: minimalDashboard,
+            height: cardHeight,
+            onTap: () => InfoDialog.showMetric(
               context,
               title: 'Suhu udara',
-              message:
-                  'Suhu membantu memperkirakan kebutuhan cairan, waktu istirahat, dan perlindungan saat beraktivitas di luar.',
+              currentValue: weather.temp == null
+                  ? 'Belum tersedia'
+                  : '${weather.temp!.toStringAsFixed(1)}°C',
+              currentStatus: _temperatureStatus(weather.temp),
+              definition:
+                  'Suhu menunjukkan tingkat panas atau dingin udara sekitar dalam derajat Celsius.',
+              impact:
+                  'Suhu tinggi dapat memicu dehidrasi dan kelelahan panas. Suhu rendah dapat menyebabkan tubuh kehilangan panas lebih cepat.',
+              guidance: _temperatureGuidance(weather.temp),
               icon: Icons.thermostat_outlined,
+              accent: EnvStatsColors.getTempAccent(weather.temp),
+              ranges: const [
+                InfoRange('<10°C', 'Dingin'),
+                InfoRange('10-20°C', 'Sejuk'),
+                InfoRange('21-30°C', 'Hangat'),
+                InfoRange('31-35°C', 'Panas'),
+                InfoRange('>35°C', 'Sangat panas'),
+              ],
+              activeRange: _temperatureRangeIndex(weather.temp),
             ),
           ),
         ];
 
-        if (narrow) {
-          return Column(
-            children: [
-              for (var i = 0; i < cards.length; i++) ...[
-                SizedBox(width: constraints.maxWidth, child: cards[i]),
-                if (i != cards.length - 1) const SizedBox(height: 12),
-              ],
-            ],
-          );
-        }
-
-        if (compact) {
-          return Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: cards
-                .map(
-                  (card) => SizedBox(
-                    width: (constraints.maxWidth - 12) / 2,
-                    child: card,
-                  ),
-                )
-                .toList(),
-          );
-        }
-
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var i = 0; i < cards.length; i++) ...[
               Expanded(child: cards[i]),
-              if (i != cards.length - 1) const SizedBox(width: 14),
+              if (i != cards.length - 1)
+                SizedBox(
+                  width: minimalDashboard
+                      ? 10
+                      : compactDashboard
+                      ? 6
+                      : 12,
+                ),
             ],
           ],
         );
@@ -112,23 +153,104 @@ class EnvStats extends StatelessWidget {
     );
   }
 
-  static String _aqiStatus(int value) {
-    if (value >= 150) return 'Tidak sehat';
-    if (value >= 100) return 'Sedang';
-    return 'Baik';
+  static String _aqiCardStatus(int? value) {
+    if (value == null) return 'Belum tersedia';
+    if (value <= 50) return 'Baik';
+    if (value <= 100) return 'Sedang';
+    if (value <= 150) return 'Sensitif';
+    if (value <= 200) return 'Tidak sehat';
+    if (value <= 300) return 'Sangat buruk';
+    return 'Berbahaya';
   }
 
-  static String _uvStatus(double value) {
-    if (value >= 8) return 'Sangat tinggi';
-    if (value >= 6) return 'Tinggi';
-    if (value >= 3) return 'Sedang';
-    return 'Rendah';
+  static String _aqiStatus(int? value) {
+    if (value == null) return 'Data belum tersedia';
+    if (value <= 50) return 'Baik';
+    if (value <= 100) return 'Sedang';
+    if (value <= 150) return 'Tidak sehat bagi kelompok sensitif';
+    if (value <= 200) return 'Tidak sehat';
+    if (value <= 300) return 'Sangat tidak sehat';
+    return 'Berbahaya';
   }
 
-  static String _temperatureStatus(double value) {
-    if (value >= 30) return 'Panas';
-    if (value >= 24) return 'Hangat';
-    return 'Sejuk';
+  static String _uvStatus(double? value) {
+    if (value == null) return 'Belum tersedia';
+    if (value <= 2) return 'Rendah';
+    if (value <= 5) return 'Sedang';
+    if (value <= 7) return 'Tinggi';
+    if (value <= 10) return 'Sangat tinggi';
+    return 'Ekstrem';
+  }
+
+  static String _temperatureStatus(double? value) {
+    if (value == null) return 'Belum tersedia';
+    if (value < 10) return 'Dingin';
+    if (value <= 20) return 'Sejuk';
+    if (value <= 30) return 'Hangat';
+    if (value <= 35) return 'Panas';
+    return 'Sangat panas';
+  }
+
+  static int _aqiRangeIndex(int? value) {
+    if (value == null) return -1;
+    if (value <= 50) return 0;
+    if (value <= 100) return 1;
+    if (value <= 150) return 2;
+    if (value <= 200) return 3;
+    if (value <= 300) return 4;
+    return 5;
+  }
+
+  static int _uvRangeIndex(double? value) {
+    if (value == null) return -1;
+    if (value <= 2) return 0;
+    if (value <= 5) return 1;
+    if (value <= 7) return 2;
+    if (value <= 10) return 3;
+    return 4;
+  }
+
+  static int _temperatureRangeIndex(double? value) {
+    if (value == null) return -1;
+    if (value < 10) return 0;
+    if (value <= 20) return 1;
+    if (value <= 30) return 2;
+    if (value <= 35) return 3;
+    return 4;
+  }
+
+  static String _aqiGuidance(int? value) {
+    if (value == null) return 'Perbarui data sebelum merencanakan aktivitas.';
+    if (value <= 50) return 'Aktivitas luar dapat dilakukan seperti biasa.';
+    if (value <= 100) {
+      return 'Pantau gejala dan kurangi aktivitas berat bila terasa tidak nyaman.';
+    }
+    if (value <= 150) {
+      return 'Kelompok sensitif sebaiknya mengurangi aktivitas berat di luar.';
+    }
+    return 'Batasi aktivitas luar dan gunakan masker yang sesuai.';
+  }
+
+  static String _uvGuidance(double? value) {
+    if (value == null) return 'Perbarui data sebelum beraktivitas di luar.';
+    if (value <= 2) {
+      return 'Gunakan jaket atau pakaian lengan panjang. Pakai tabir surya jika berkendara lama.';
+    }
+    if (value <= 5) {
+      return 'Gunakan jaket lengan panjang dan tabir surya. Istirahat di tempat teduh saat menunggu order.';
+    }
+    if (value <= 7) {
+      return 'Gunakan jaket lengan panjang dan tabir surya. Kurangi waktu di bawah matahari langsung.';
+    }
+    return 'Cari tempat teduh saat menunggu order. Gunakan jaket lengan panjang dan tabir surya.';
+  }
+
+  static String _temperatureGuidance(double? value) {
+    if (value == null) return 'Perbarui data sebelum beraktivitas di luar.';
+    if (value < 10) return 'Gunakan pakaian hangat dan batasi paparan lama.';
+    if (value <= 30) return 'Sesuaikan pakaian dan tetap cukup minum.';
+    if (value <= 35) return 'Minum cukup dan beristirahat dari panas.';
+    return 'Cari tempat teduh dan kurangi aktivitas fisik berat.';
   }
 }
 
@@ -136,104 +258,156 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
   final String status;
-  final String description;
   final IconData icon;
   final Color accent;
-  final bool dense;
+  final bool compact;
+  final bool comfortable;
+  final bool minimal;
+  final double? height;
   final VoidCallback onTap;
 
   const _StatCard({
     required this.label,
     required this.value,
     required this.status,
-    required this.description,
     required this.icon,
     required this.accent,
-    this.dense = false,
+    this.compact = false,
+    this.comfortable = false,
+    this.minimal = false,
+    this.height,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(compact ? 16 : 20);
     return Material(
       color: AppColors.card,
-      borderRadius: BorderRadius.circular(22),
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: minimal
+            ? BorderSide(color: accent.withValues(alpha: .36))
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: radius,
         child: SizedBox(
-          height: dense ? 264 : 356,
+          height: height ?? (compact ? 108 : 126),
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              dense ? 18 : 12,
-              dense ? 18 : 25,
-              dense ? 18 : 12,
-              dense ? 17 : 21,
+              compact ? (comfortable ? 6 : 4) : 10,
+              compact ? (comfortable ? 9 : 7) : 10,
+              compact ? (comfortable ? 6 : 4) : 10,
+              compact ? (comfortable ? 8 : 6) : 9,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(icon, color: accent, size: dense ? 48 : 59),
-                SizedBox(height: dense ? 10 : 17),
-                Container(
-                  constraints: BoxConstraints(minWidth: dense ? 132 : 137),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+            child: minimal
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(icon, color: accent, size: comfortable ? 27 : 24),
+                      SizedBox(height: comfortable ? 9 : 6),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          value,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: comfortable ? 31 : 27,
+                            height: .95,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: comfortable ? 5 : 3),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: AppColors.muted,
+                          fontSize: comfortable ? 12 : 11,
+                          height: 1,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        icon,
+                        color: accent,
+                        size: compact
+                            ? comfortable
+                                  ? 27
+                                  : 22
+                            : 29,
+                      ),
+                      SizedBox(height: compact ? (comfortable ? 5 : 3) : 5),
+                      Container(
+                        constraints: BoxConstraints(
+                          minWidth: compact ? 0 : 90,
+                          maxWidth: compact ? 90 : 150,
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: compact ? (comfortable ? 8 : 6) : 9,
+                          vertical: compact ? (comfortable ? 4 : 3) : 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: .1),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Text(
+                          status,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: accent,
+                            fontSize: compact
+                                ? comfortable
+                                      ? 11
+                                      : 10
+                                : 12,
+                            height: 1,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: compact ? (comfortable ? 5 : 3) : 5),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          value,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: compact
+                                ? comfortable
+                                      ? 30
+                                      : 25
+                                : 31,
+                            height: .98,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: compact ? 1 : 2),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: AppColors.muted,
+                          fontSize: compact
+                              ? comfortable
+                                    ? 12
+                                    : 11
+                              : 14,
+                          height: 1,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: .1),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Text(
-                    status,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: accent,
-                      fontSize: dense ? 16 : 18,
-                      height: 1,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                SizedBox(height: dense ? 10 : 14),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      color: AppColors.ink,
-                      fontSize: dense ? 42 : 48,
-                      height: .98,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: AppColors.muted,
-                    fontSize: dense ? 21 : 25,
-                    height: 1,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  description,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.muted,
-                    fontSize: dense ? 16 : 18,
-                    height: 1.25,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),

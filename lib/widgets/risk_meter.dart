@@ -9,8 +9,16 @@ import '../models/weather.dart';
 class RiskMeter extends StatelessWidget {
   final Weather weather;
   final double size;
+  final String label;
+  final bool showIcon;
 
-  const RiskMeter({super.key, required this.weather, this.size = 280});
+  const RiskMeter({
+    super.key,
+    required this.weather,
+    this.size = 280,
+    this.label = 'Risiko Saat Ini',
+    this.showIcon = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +36,7 @@ class RiskMeter extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Risiko Saat Ini',
+                label,
                 style: TextStyle(
                   color: AppColors.muted,
                   fontSize: size * .085,
@@ -45,12 +53,25 @@ class RiskMeter extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 7),
-              Icon(
-                Icons.air,
-                color: riskColor.withValues(alpha: .8),
-                size: size * .18,
-              ),
+              if (weather.riskState == RiskState.incomplete) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Data belum lengkap',
+                  style: TextStyle(
+                    color: AppColors.muted,
+                    fontSize: size * .052,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+              if (showIcon) ...[
+                const SizedBox(height: 7),
+                Icon(
+                  Icons.air,
+                  color: riskColor.withValues(alpha: .8),
+                  size: size * .18,
+                ),
+              ],
             ],
           ),
         ),

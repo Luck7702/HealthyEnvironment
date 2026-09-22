@@ -31,6 +31,11 @@ class RiskCard extends StatelessWidget {
                     color: riskColor,
                   ),
                 ),
+                if (weather.riskState == RiskState.incomplete)
+                  const Text(
+                    'Data belum lengkap',
+                    style: TextStyle(fontSize: 12),
+                  ),
               ],
             ),
           ],
