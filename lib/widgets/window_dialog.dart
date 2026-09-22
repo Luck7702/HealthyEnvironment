@@ -157,16 +157,18 @@ class _MetricHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 5),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: currentValue,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    TextSpan(text: '  $currentStatus'),
-                  ],
+              Text(
+                currentValue,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 14,
+                  height: 1.2,
+                  fontWeight: FontWeight.w800,
                 ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                currentStatus,
                 style: TextStyle(
                   color: accent,
                   fontSize: 14,

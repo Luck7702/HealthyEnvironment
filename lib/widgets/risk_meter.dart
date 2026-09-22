@@ -40,7 +40,7 @@ class RiskMeter extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: context.appColors.muted,
-                  fontSize: size * .085,
+                  fontSize: size * .08,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -51,7 +51,7 @@ class RiskMeter extends StatelessWidget {
                   color: riskColor,
                   fontSize: size * .18,
                   height: 1,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               if (weather.riskState == RiskState.incomplete) ...[
@@ -96,7 +96,7 @@ class _CircleMeterPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final radius = size.width / 2 - 10;
-    final strokeWidth = (size.width * .06).clamp(13.0, 17.0).toDouble();
+    final strokeWidth = (size.width * .052).clamp(10.0, 14.0).toDouble();
     final background = Paint()
       ..color = trackColor
       ..style = PaintingStyle.stroke

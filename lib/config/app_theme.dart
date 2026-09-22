@@ -43,23 +43,23 @@ class AppColors extends ThemeExtension<AppColors> {
   });
 
   static const light = AppColors(
-    page: Color(0xFFE8F9F1),
-    pageEnd: Color(0xFFEEFCF6),
-    card: Color(0xFFFFFEFC),
-    ink: Color(0xFF0B3048),
-    forest: Color(0xFF0B4B42),
-    muted: Color(0xFF5D7896),
-    green: Color(0xFF278653),
-    greenSoft: Color(0xFFE1F6EC),
-    greenBorder: Color(0xFFACDEC7),
+    page: Color(0xFFECF7F1),
+    pageEnd: Color(0xFFE5F3EC),
+    card: Color(0xFFFCFEFD),
+    ink: Color(0xFF12352F),
+    forest: Color(0xFF176B57),
+    muted: Color(0xFF527069),
+    green: Color(0xFF2D8B62),
+    greenSoft: Color(0xFFE1F2EB),
+    greenBorder: Color(0xFFD5E6DE),
     orange: Color(0xFFD96F00),
     orangeSoft: Color(0xFFFFF4DF),
     coral: Color(0xFFD93F39),
     coralSoft: Color(0xFFFFE9E8),
     blue: Color(0xFF267FC4),
     blueSoft: Color(0xFFE8F4FF),
-    line: Color(0xFFD7EEE4),
-    meterTrack: Color(0xFFDCE8E4),
+    line: Color(0xFFC9DDD4),
+    meterTrack: Color(0xFFDFEAE5),
     illustrationOverlay: Color(0x00FFFFFF),
   );
 
@@ -214,16 +214,44 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          color: colors.ink,
+          fontFamily: 'Roboto',
+          fontSize: 22,
+          height: 1.25,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       cardTheme: CardThemeData(
         color: colors.card,
         surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: colors.line),
+        ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: colors.card,
         surfaceTintColor: Colors.transparent,
       ),
       dividerTheme: DividerThemeData(color: colors.line),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? colors.card
+              : colors.muted,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? colors.green
+              : colors.line,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? colors.green
+              : colors.muted.withValues(alpha: .55),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colors.card,
@@ -235,11 +263,42 @@ class AppTheme {
           borderSide: BorderSide(color: colors.green, width: 2),
         ),
       ),
-      textTheme: base.textTheme.apply(
-        bodyColor: colors.ink,
-        displayColor: colors.ink,
-        fontFamily: 'Roboto',
-      ),
+      textTheme: base.textTheme
+          .apply(
+            bodyColor: colors.ink,
+            displayColor: colors.ink,
+            fontFamily: 'Roboto',
+          )
+          .copyWith(
+            titleLarge: TextStyle(
+              color: colors.ink,
+              fontFamily: 'Roboto',
+              fontSize: 22,
+              height: 1.25,
+              fontWeight: FontWeight.w700,
+            ),
+            titleMedium: TextStyle(
+              color: colors.ink,
+              fontFamily: 'Roboto',
+              fontSize: 16,
+              height: 1.375,
+              fontWeight: FontWeight.w600,
+            ),
+            bodyMedium: TextStyle(
+              color: colors.ink,
+              fontFamily: 'Roboto',
+              fontSize: 14,
+              height: 1.43,
+              fontWeight: FontWeight.w400,
+            ),
+            labelMedium: TextStyle(
+              color: colors.muted,
+              fontFamily: 'Roboto',
+              fontSize: 12,
+              height: 1.33,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
     );
   }
 }

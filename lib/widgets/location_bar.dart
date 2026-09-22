@@ -90,10 +90,10 @@ class LocationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: context.appColors.card,
-      borderRadius: BorderRadius.circular(25),
+      borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(24),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final narrow = compact || constraints.maxWidth < 500;

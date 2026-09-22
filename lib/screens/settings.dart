@@ -17,8 +17,9 @@ class SettingsScreen extends StatelessWidget {
             'Tampilan',
             style: TextStyle(
               color: context.appColors.forest,
-              fontSize: 25,
-              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              height: 1.25,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 12),
@@ -41,13 +42,14 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 24),
           Text(
             'Lokasi dan bahasa',
             style: TextStyle(
               color: context.appColors.forest,
-              fontSize: 25,
-              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              height: 1.25,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 12),
@@ -86,23 +88,24 @@ class _SettingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.appColors.line),
       ),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: context.appColors.greenSoft,
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: context.appColors.forest),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,8 +114,9 @@ class _SettingTile extends StatelessWidget {
                   title,
                   style: TextStyle(
                     color: context.appColors.ink,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    height: 1.375,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -121,7 +125,7 @@ class _SettingTile extends StatelessWidget {
                   style: TextStyle(
                     color: context.appColors.muted,
                     fontSize: 14,
-                    height: 1.25,
+                    height: 1.43,
                   ),
                 ),
               ],
