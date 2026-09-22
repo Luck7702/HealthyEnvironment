@@ -168,7 +168,7 @@ class HomeScreenState extends State<HomeScreen> {
                   ? 44.0
                   : constraints.maxWidth >= 520
                   ? 28.0
-                  : 12.0;
+                  : 16.0;
               final verticalPadding = phone
                   ? shortPhone
                         ? 6.0
@@ -178,10 +178,10 @@ class HomeScreenState extends State<HomeScreen> {
                   : 12.0;
               final gap = phone
                   ? shortPhone
-                        ? 5.0
+                        ? 8.0
                         : tallPhone
-                        ? 10.0
-                        : 7.0
+                        ? 12.0
+                        : 12.0
                   : 10.0;
               final riskHeight = phone
                   ? shortPhone
@@ -203,10 +203,10 @@ class HomeScreenState extends State<HomeScreen> {
                   : 126.0;
 
               final mobileRiskSize = shortPhone
-                  ? 154.0
+                  ? 148.0
                   : tallPhone
-                  ? 220.0
-                  : 188.0;
+                  ? 204.0
+                  : 176.0;
               final mobileStatsHeight = shortPhone
                   ? 88.0
                   : tallPhone
@@ -278,7 +278,7 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ] else if (phone) ...[
-                      SizedBox(height: shortPhone ? 6 : 10),
+                      SizedBox(height: shortPhone ? 8 : 16),
                       SizedBox(
                         height: mobileRiskSize,
                         child: Center(
@@ -290,7 +290,7 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: shortPhone ? 8 : 14),
+                      SizedBox(height: shortPhone ? 12 : 20),
                       SizedBox(
                         height: mobileStatsHeight + 13,
                         child: EnvStats(
@@ -301,7 +301,7 @@ class HomeScreenState extends State<HomeScreen> {
                           cardHeight: mobileStatsHeight,
                         ),
                       ),
-                      SizedBox(height: shortPhone ? 12 : 20),
+                      SizedBox(height: shortPhone ? 16 : 24),
                       Expanded(
                         child: RecommendationSection(
                           weather: envData.weather,
@@ -373,15 +373,15 @@ class _PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final markSize = narrow
         ? comfortable
-              ? 38.0
-              : 34.0
+              ? 36.0
+              : 32.0
         : compact
         ? 44.0
         : 62.0;
     final titleSize = narrow
         ? comfortable
-              ? 17.0
-              : 15.5
+              ? 18.0
+              : 17.0
         : compact
         ? 20.0
         : 30.0;
@@ -391,16 +391,12 @@ class _PageHeader extends StatelessWidget {
         ? 12.0
         : 16.0;
     final buttonSize = narrow
-        ? comfortable
-              ? 42.0
-              : 38.0
+        ? 44.0
         : compact
         ? 44.0
         : 56.0;
     final iconSize = narrow
-        ? comfortable
-              ? 21.0
-              : 19.0
+        ? 21.0
         : compact
         ? 21.0
         : 27.0;
@@ -425,8 +421,8 @@ class _PageHeader extends StatelessWidget {
                 style: TextStyle(
                   color: context.appColors.forest,
                   fontSize: titleSize,
-                  height: 1,
-                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               if (!compact) ...[

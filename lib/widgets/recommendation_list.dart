@@ -99,7 +99,7 @@ class RecommendationSection extends StatelessWidget {
                           : 19
                     : 26,
                 height: 1.05,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
             SizedBox(
@@ -191,16 +191,12 @@ class _RecommendationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(compact ? 16 : 19);
+    final radius = BorderRadius.circular(16);
     return Material(
       color: context.appColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: radius,
-        side: minimal
-            ? BorderSide(
-                color: context.appColors.greenBorder.withValues(alpha: .55),
-              )
-            : BorderSide.none,
+        side: BorderSide(color: context.appColors.line),
       ),
       child: InkWell(
         borderRadius: radius,
@@ -255,7 +251,7 @@ class _RecommendationTile extends StatelessWidget {
                         color: context.appColors.ink,
                         fontSize: compact ? 14 : 16,
                         height: compact ? 1.35 : 1.15,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),

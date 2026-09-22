@@ -590,14 +590,13 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(compact ? 16 : 20);
+    final radius = BorderRadius.circular(16);
+    final tight = compact && (height ?? 108) < 96;
     return Material(
       color: context.appColors.card,
       shape: RoundedRectangleBorder(
         borderRadius: radius,
-        side: minimal
-            ? BorderSide(color: accent.withValues(alpha: .36))
-            : BorderSide.none,
+        side: BorderSide(color: context.appColors.line),
       ),
       child: InkWell(
         onTap: onTap,
@@ -616,16 +615,17 @@ class _StatCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(icon, color: accent, size: comfortable ? 27 : 24),
-                      SizedBox(height: comfortable ? 9 : 6),
+                      SizedBox(height: tight ? 5 : (comfortable ? 9 : 6)),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
                           value,
                           style: TextStyle(
-                            color: context.appColors.ink,
-                            fontSize: comfortable ? 31 : 27,
-                            height: .95,
-                            fontWeight: FontWeight.w700,
+                            color: accent,
+                            fontSize: tight ? 27 : (comfortable ? 30 : 28),
+                            height: 1,
+                            fontWeight: FontWeight.w600,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
@@ -634,8 +634,8 @@ class _StatCard extends StatelessWidget {
                         label,
                         style: TextStyle(
                           color: context.appColors.muted,
-                          fontSize: comfortable ? 12 : 11,
-                          height: 1,
+                          fontSize: tight ? 11 : 12,
+                          height: tight ? 1.2 : 1.33,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -690,14 +690,15 @@ class _StatCard extends StatelessWidget {
                         child: Text(
                           value,
                           style: TextStyle(
-                            color: context.appColors.ink,
+                            color: accent,
                             fontSize: compact
                                 ? comfortable
                                       ? 30
                                       : 25
                                 : 31,
                             height: .98,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
@@ -710,9 +711,9 @@ class _StatCard extends StatelessWidget {
                               ? comfortable
                                     ? 12
                                     : 11
-                              : 14,
-                          height: 1,
-                          fontWeight: FontWeight.w600,
+                              : 12,
+                          height: 1.33,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
