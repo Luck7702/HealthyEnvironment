@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingkungan_sehat/config/app_theme.dart';
+import 'package:lingkungan_sehat/config/scroll_demo.dart';
 import 'package:lingkungan_sehat/config/theme_controller.dart';
 import 'package:lingkungan_sehat/screens/home.dart';
 
@@ -23,7 +24,11 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeMode,
-          home: const HomeScreen(),
+          home: HomeScreen(
+            environmentLoader: scrollDemoEnabled
+                ? loadScrollDemoEnvironment
+                : null,
+          ),
         );
       },
     );

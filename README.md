@@ -56,6 +56,16 @@ curl 'http://localhost:3000/api/environment?q=Jakarta'
 
 Client calls `GET /api/environment?q=...`. `ENVIRONMENT_API_URL` defaults to `/api/environment`, so production same-origin builds need no `--dart-define`.
 
+### Check page scrolling
+
+Run Flutter with static demo data and extra recommendations; no API needed:
+
+```sh
+fvm flutter run -d chrome --web-port 8080 --dart-define=SCROLL_DEMO=true
+```
+
+Use Chrome device toolbar to try a mobile viewport (for example, 320 × 700), then a desktop viewport (1024 × 768). Scroll over the recommendations: the whole page, including the header, should move. `SCROLL_DEMO` works only in debug builds.
+
 ## Environment API
 
 `api/environment.js` is a Vercel Node.js Function. Production and Preview use Vercel environment variables: configure `WEATHER_API_KEY` and `CORS_ORIGINS` in Vercel, then deploy with `vercel`. Transient upstream failures receive one retry within a 15-second total budget; `WEATHER_TIMEOUT_MS`, `WEATHER_TOTAL_TIMEOUT_MS`, and `WEATHER_RETRY_DELAY_MS` tune that policy. Deploy build script [`scripts/vercel-build.sh`](scripts/vercel-build.sh) installs FVM-selected Flutter SDK and builds `build/web`; no local key upload is needed.

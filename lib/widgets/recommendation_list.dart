@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
+import '../config/scroll_demo.dart';
 import '../models/weather.dart';
 
 class RecommendationSection extends StatelessWidget {
@@ -20,7 +21,10 @@ class RecommendationSection extends StatelessWidget {
   });
 
   List<_Recommendation> _recommendations(BuildContext context) {
-    final values = weather.recommendations;
+    final values = [
+      ...weather.recommendations,
+      if (scrollDemoEnabled) ...scrollDemoRecommendations,
+    ];
     if (values.isEmpty) {
       return [
         _Recommendation(
