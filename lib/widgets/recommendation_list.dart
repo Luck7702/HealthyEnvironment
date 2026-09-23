@@ -78,86 +78,74 @@ class RecommendationSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final recommendations = _recommendations(context);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final pinFooter = footer != null && constraints.maxHeight >= 150;
-        final itemCount =
-            recommendations.length + (!pinFooter && footer != null ? 1 : 0);
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Saran untuk Anda',
+          style: TextStyle(
+            color: context.appColors.forest,
+            fontSize: minimalDashboard
+                ? 20
+                : compact
+                ? comfortable
+                      ? 21
+                      : 19
+                : 26,
+            height: 1.05,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        SizedBox(
+          height: minimalDashboard
+              ? 6
+              : compact
+              ? 2
+              : 4,
+        ),
+        Text(
+          weather.riskDescription,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: context.appColors.muted,
+            fontSize: minimalDashboard
+                ? 13
+                : compact
+                ? comfortable
+                      ? 12
+                      : 11
+                : 15,
+            height: minimalDashboard ? 1.25 : 1.15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(
+          height: minimalDashboard
+              ? 14
+              : compact
+              ? 6
+              : 9,
+        ),
+        Column(
+          key: const Key('recommendations-list'),
           children: [
-            Text(
-              'Saran untuk Anda',
-              style: TextStyle(
-                color: context.appColors.forest,
-                fontSize: minimalDashboard
-                    ? 20
-                    : compact
-                    ? comfortable
-                          ? 21
-                          : 19
-                    : 26,
-                height: 1.05,
-                fontWeight: FontWeight.w700,
+            for (var index = 0; index < recommendations.length; index++) ...[
+              if (index > 0) SizedBox(height: compact ? 10 : 8),
+              _RecommendationTile(
+                recommendation: recommendations[index],
+                compact: compact,
+                comfortable: comfortable,
+                minimal: minimalDashboard,
               ),
-            ),
-            SizedBox(
-              height: minimalDashboard
-                  ? 6
-                  : compact
-                  ? 2
-                  : 4,
-            ),
-            Text(
-              weather.riskDescription,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: context.appColors.muted,
-                fontSize: minimalDashboard
-                    ? 13
-                    : compact
-                    ? comfortable
-                          ? 12
-                          : 11
-                    : 15,
-                height: minimalDashboard ? 1.25 : 1.15,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(
-              height: minimalDashboard
-                  ? 14
-                  : compact
-                  ? 6
-                  : 9,
-            ),
-            Expanded(
-              child: ListView.separated(
-                key: const Key('recommendations-list'),
-                padding: EdgeInsets.zero,
-                physics: const ClampingScrollPhysics(),
-                itemCount: itemCount,
-                separatorBuilder: (_, _) => SizedBox(height: compact ? 10 : 8),
-                itemBuilder: (context, index) {
-                  if (index == recommendations.length) return footer!;
-                  return _RecommendationTile(
-                    recommendation: recommendations[index],
-                    compact: compact,
-                    comfortable: comfortable,
-                    minimal: minimalDashboard,
-                  );
-                },
-              ),
-            ),
-            if (pinFooter) ...[
-              SizedBox(height: compact ? (comfortable ? 10 : 6) : 8),
-              footer!,
             ],
           ],
-        );
-      },
+        ),
+        if (footer != null) ...[
+          SizedBox(height: compact ? (comfortable ? 10 : 6) : 8),
+          footer!,
+        ],
+      ],
     );
   }
 }

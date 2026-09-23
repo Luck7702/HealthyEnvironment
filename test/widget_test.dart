@@ -38,7 +38,7 @@ void main() {
     expect(find.text('Ciledug 1'), findsOneWidget);
     expect(find.text('Kondisi Lingkungan Saat Ini'), findsOneWidget);
     expect(find.text('Saran untuk Anda'), findsOneWidget);
-    expect(find.byType(ListView), findsOneWidget);
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
     expect(find.byKey(const Key('recommendations-list')), findsOneWidget);
   });
 
@@ -204,7 +204,7 @@ void main() {
     const Size(1024, 768),
     const Size(1440, 900),
   ]) {
-    testWidgets('fits fixed dashboard at ${size.width}x${size.height}', (
+    testWidgets('renders dashboard at ${size.width}x${size.height}', (
       WidgetTester tester,
     ) async {
       await tester.binding.setSurfaceSize(size);
@@ -221,34 +221,43 @@ void main() {
         expect(find.text('Risiko'), findsOneWidget);
       }
       expect(find.text('Saran untuk Anda'), findsOneWidget);
-      expect(find.byType(ListView), findsOneWidget);
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
     });
   }
 
-  testWidgets('only recommendations scroll when advice exceeds space', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(320, 700));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+  for (final size in <Size>[const Size(320, 700), const Size(1024, 768)]) {
+    testWidgets('whole page scrolls at ${size.width}x${size.height}', (
+      WidgetTester tester,
+    ) async {
+      await tester.binding.setSurfaceSize(size);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await pumpHome(tester);
+      await pumpHome(tester);
 
-    final recommendationScrollable = find.descendant(
-      of: find.byKey(const Key('recommendations-list')),
-      matching: find.byType(Scrollable),
-    );
-    expect(recommendationScrollable, findsOneWidget);
-    final scrollable = tester.state<ScrollableState>(recommendationScrollable);
-    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+      final pageScrollable = find.ancestor(
+        of: find.byKey(const Key('recommendations-list')),
+        matching: find.byType(Scrollable),
+      );
+      expect(pageScrollable, findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('recommendations-list')),
+          matching: find.byType(Scrollable),
+        ),
+        findsNothing,
+      );
+      final scrollable = tester.state<ScrollableState>(pageScrollable);
+      expect(scrollable.position.maxScrollExtent, greaterThan(0));
 
-    await tester.drag(
-      find.byKey(const Key('recommendations-list')),
-      const Offset(0, -160),
-    );
-    await tester.pumpAndSettle();
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, -160),
+      );
+      await tester.pumpAndSettle();
 
-    expect(scrollable.position.pixels, greaterThan(0));
-  });
+      expect(scrollable.position.pixels, greaterThan(0));
+    });
+  }
 
   testWidgets('metric dialogs show ranges and highlight current category', (
     WidgetTester tester,
