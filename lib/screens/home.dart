@@ -233,7 +233,7 @@ class HomeScreenState extends State<HomeScreen> {
                 );
               }
 
-              return Padding(
+              final content = Padding(
                 padding: EdgeInsets.fromLTRB(
                   horizontalPadding,
                   verticalPadding,
@@ -302,13 +302,11 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       SizedBox(height: shortPhone ? 16 : 24),
-                      Expanded(
-                        child: RecommendationSection(
-                          weather: envData.weather,
-                          compact: true,
-                          comfortable: tallPhone,
-                          minimalDashboard: true,
-                        ),
+                      RecommendationSection(
+                        weather: envData.weather,
+                        compact: true,
+                        comfortable: tallPhone,
+                        minimalDashboard: true,
                       ),
                     ] else ...[
                       SizedBox(height: gap),
@@ -337,13 +335,12 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Expanded(
-                        child: RecommendationSection(weather: envData.weather),
-                      ),
+                      RecommendationSection(weather: envData.weather),
                     ],
                   ],
                 ),
               );
+              return hasData ? SingleChildScrollView(child: content) : content;
             },
           ),
         ),
