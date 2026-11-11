@@ -8,8 +8,8 @@ The app uses your GPS position or a city you enter. It combines four hazards:
 
 - **Air quality:** US EPA AQI from PM2.5 and PM10
 - **UV:** the WHO UV Index
-- **Heat:** the NWS heat index from temperature and humidity
-- **Weather:** thunder, heavy rain and other hazardous conditions
+- **Heat:** the NWS heat index from temperature and humidity, raised one level in direct daytime sun
+- **Weather:** thunder, heavy rain, fog and other hazardous conditions
 
 The overall rating is the worst of the four, and data refreshes every five minutes. Ratings are indicative, not medical advice. See [Environmental risk analysis](#environmental-risk-analysis) for thresholds and sources.
 
@@ -93,11 +93,24 @@ Environment data loads on startup, refreshes every five minutes, stops loading a
 
 ## Environmental risk analysis
 
-Risk uses strongest known hazard across AQI, UV Index, heat exposure, and weather condition. Heat exposure uses the NWS heat-index formula when temperature and relative humidity are available, then falls back to air temperature when humidity is unavailable. AQI, UV, and heat cutoffs are app heuristics: AQI `<51` low, `51–150` moderate, `>=151` high; UV `<3` low, `3–7` moderate, `>=8` high; heat exposure `15 <= T < 30°C` low, `30 <= T < 35°C` moderate, `T >= 35°C` high, air temperature `<15°C` moderate, air temperature `<=0°C` high. Decimal readings stay precise. These are not a validated medical score or probability.
+The overall risk is the highest of four hazard levels (Rendah, Sedang, Tinggi). Every numeric cut-off below comes from the cited source. How each source's categories group into the three app levels is the app's own mapping. Ratings are indicative, not medical advice.
+
+| Hazard | Rendah | Sedang | Tinggi | Source |
+|---|---|---|---|---|
+| Air quality (US EPA AQI from PM2.5/PM10) | 0–50 | 51–150 | ≥151 | [EPA AQI breakpoints](https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html) |
+| UV Index | 0–2 | 3–7 | ≥8 | [WHO UV Index](https://www.who.int/news-room/questions-and-answers/item/radiation-the-ultraviolet-%28uv%29-index) action levels; dialog labels use the [ICNIRP](https://www.icnirp.org/en/applications/uv-index/index.html) five categories |
+| Heat (NWS heat index) | below Extreme Caution (<90 °F / 32.2 °C) | Extreme Caution (90–103 °F) | Danger and above (≥103 °F / 39.4 °C) | [NWS heat index classification](https://www.weather.gov/ama/heatindex) |
+| Weather condition | clear, cloud, mist | rain, snow, smoke/haze, fog | thunder, heavy rain/snow, blizzard | [WeatherAPI condition codes](https://www.weatherapi.com/docs/weather_conditions.json), [NWS lightning safety](https://www.weather.gov/safety/lightning-safety) |
+
+- **Direct sun.** NWS heat index values assume shade; full sun can add up to 15 °F. During daylight (`is_day`) with a clear or partly cloudy sky (condition codes 1000/1003), heat risk moves up one NWS level, following OSHA's advice to apply the next highest risk level when working in direct sun ([OSHA, *Using the Heat Index*, archived](https://web.archive.org/web/2013/http://www.osha.gov/SLTC/heatillness/heat_index/protective_measures.html)).
+- **Heat fallback.** Without valid humidity, the heat index falls back to air temperature.
+- **Humidity is information only.** The card shows the [NWS dew point comfort scale](https://www.weather.gov/arx/heat_index) (≤55 °F dry and comfortable, 55–65 °F sticky, ≥65 °F oppressive), with dew point from the Magnus formula. Humidity's effect on the body is already counted through the heat index.
+- **No cold rule.** No credible source supports a cold threshold above freezing for this use case, so cold does not affect the risk.
+- **Indicative AQI.** PM2.5/PM10-derived AQI is a single current reading, not an official daily, NowCast, all-pollutant AQI, or Indonesian ISPU.
 
 Invalid or missing readings remain unknown (`null`). Known elevated hazards remain visible when other readings are missing; when every indicator is unknown, UI states risk is unavailable instead of inventing a safe zero. Recommendations stay short and tied to known hazards.
 
-AQI guidance references [EPA AQI breakpoints](https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html) and [EPA PM2.5 rounding/truncation guidance](https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=P101AP0Q.TXT). UV guidance references [WHO UV Index guidance](https://www.who.int/news-room/questions-and-answers/item/radiation-the-ultraviolet-%28uv%29-index): protection begins at 3+, with midday exposure avoidance at 8+. Weather condition interpretation references [WeatherAPI condition codes](https://www.weatherapi.com/docs/weather_conditions.json), [NWS heat safety](https://www.weather.gov/safety/heat-during), and [NWS lightning safety](https://www.weather.gov/safety/lightning-safety). PM2.5/PM10-derived AQI is a current-sample estimate, not official daily, NowCast, or all-pollutant AQI.
+The app's Information screen and each metric dialog link to these sources.
 
 If an actual WeatherAPI key was ever supplied to an old client build or external build system, rotate it there. Repository config previously used an empty `OPENWEATHER_KEY` default; no literal credential is confirmed in tracked source. Rotation does not remove secrets from existing build artifacts or repository history.
 
