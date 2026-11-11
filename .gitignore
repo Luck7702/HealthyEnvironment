@@ -57,3 +57,6 @@ node_modules/
 # Generated local state
 tmp/
 .vercel
+
+# Local drafts (not tracked)
+/drafts/
