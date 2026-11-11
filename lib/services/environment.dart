@@ -140,6 +140,7 @@ Future<EnvData> loadEnvironment({
       humidity: (data['humidity'] as num?)?.toDouble(),
       condition: data['condition'] as String?,
       conditionCode: (data['conditionCode'] as num?)?.toInt(),
+      isDay: data['isDay'] as bool?,
     ),
   );
 }
@@ -200,6 +201,12 @@ class EnvironmentService {
     final conditionCode = condition['code'] is num
         ? (condition['code'] as num).toInt()
         : null;
+    final isDayFlag = current['is_day'];
+    final isDay = isDayFlag == 1
+        ? true
+        : isDayFlag == 0
+        ? false
+        : null;
     if (temp == null &&
         humidity == null &&
         uv == null &&
@@ -221,6 +228,7 @@ class EnvironmentService {
     if (temp != null) result['temp'] = temp;
     if (humidity != null) result['humidity'] = humidity;
     if (uv != null) result['uv'] = uv;
+    if (isDay != null) result['isDay'] = isDay;
     return result;
   }
 

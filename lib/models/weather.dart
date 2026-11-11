@@ -10,6 +10,9 @@ class Weather {
   final String? condition;
   final int? conditionCode;
 
+  /// WeatherAPI `is_day`: true in daylight, false at night, null if unknown.
+  final bool? isDay;
+
   const Weather({
     this.aqi,
     this.uv,
@@ -17,6 +20,7 @@ class Weather {
     this.humidity,
     this.condition,
     this.conditionCode,
+    this.isDay,
   });
 
   Map<String, double> get componentSeverity {

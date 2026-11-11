@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { fetchWeather } = require('./environment')._test;
+const { fetchWeather, publicWeather } = require('./environment')._test;
 
 const successBody = JSON.stringify({
   location: { name: 'Tangerang', localtime: '2026-09-22 12:00' },
@@ -75,4 +75,16 @@ test('second attempt uses remaining total time budget', async () => {
 
   assert.equal(result.status, 200);
   assert.deepEqual(timeouts, [8000, 6700]);
+});
+
+test('passes through day/night flag and drops invalid values', () => {
+  const body = (isDay) => ({
+    location: { name: 'Jakarta', localtime: '2026-11-11 12:00' },
+    current: { condition: { text: 'Sunny', code: 1000 }, temp_c: 31, is_day: isDay },
+  });
+
+  assert.equal(publicWeather(body(1)).current.is_day, 1);
+  assert.equal(publicWeather(body(0)).current.is_day, 0);
+  assert.equal('is_day' in publicWeather(body('yes')).current, false);
+  assert.equal('is_day' in publicWeather(body(2)).current, false);
 });

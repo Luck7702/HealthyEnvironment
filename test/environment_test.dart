@@ -64,6 +64,23 @@ void main() {
     expect(result['temp'], 30.4);
     expect(result['condition'], 'Sunny');
     expect(result['conditionCode'], 1000);
+    expect(result.containsKey('isDay'), isFalse);
+  });
+
+  test('day/night flag maps to isDay and ignores invalid values', () {
+    Map<String, dynamic> parse(dynamic isDay) =>
+        EnvironmentService.parseEnvironmentPayload({
+          'location': {'name': 'Jakarta', 'localtime': '2026-11-11 12:00'},
+          'current': {
+            'temp_c': 31.0,
+            'is_day': isDay,
+            'condition': {'text': 'Sunny', 'code': 1000},
+          },
+        });
+
+    expect(parse(1)['isDay'], isTrue);
+    expect(parse(0)['isDay'], isFalse);
+    expect(parse('1').containsKey('isDay'), isFalse);
   });
 
   test('partial payload preserves valid readings', () {

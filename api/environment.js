@@ -135,6 +135,7 @@ function publicWeather(body) {
   for (const [key, value] of [['temp_c', current.temp_c], ['humidity', current.humidity], ['uv', current.uv]]) {
     if (finite(value) !== undefined) safeCurrent[key] = finite(value);
   }
+  if (current.is_day === 0 || current.is_day === 1) safeCurrent.is_day = current.is_day;
   if (!Object.keys(safeCondition).length && !Object.keys(safeAir).length && !Object.keys(safeCurrent).some((key) => key !== 'condition' && key !== 'air_quality')) return null;
   return { location: { name: locationName, localtime }, current: safeCurrent };
 }
@@ -264,4 +265,4 @@ async function handler(req, res) {
 }
 
 module.exports = handler;
-module.exports._test = { fetchWeather, parseUpstreamResponse };
+module.exports._test = { fetchWeather, parseUpstreamResponse, publicWeather };
