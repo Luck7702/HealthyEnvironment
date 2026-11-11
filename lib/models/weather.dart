@@ -27,15 +27,8 @@ class Weather {
     final values = <String, double>{};
     if (aqi != null) values['AQI'] = _band(aqi!.toDouble(), 51, 151, 301);
     if (uv != null) values['UV'] = _band(uv!, 3, 8, 11);
-    if (temp != null) {
-      final heat = _band(heatIndex ?? temp!, 30, 35, 40);
-      final cold = temp! <= 0
-          ? 1.0
-          : temp! < 15
-          ? 0.5
-          : 0.0;
-      values['Suhu'] = heat > cold ? heat : cold;
-    }
+    final heat = heatSeverity;
+    if (heat != null) values['Suhu'] = heat;
     final weather = _conditionSeverity;
     if (weather != null) values['Cuaca'] = weather;
     return values;
@@ -72,6 +65,52 @@ class Weather {
 
     return (heatIndexF - 32) * 5 / 9;
   }
+
+  /// NWS heat index classification of [heatIndex] (or air temperature when
+  /// humidity is unavailable): 0 below Caution, 1 Caution (80–90 °F),
+  /// 2 Extreme Caution (90–103 °F), 3 Danger (103–124 °F),
+  /// 4 Extreme Danger (125 °F or higher).
+  /// Source: NWS, https://www.weather.gov/ama/heatindex
+  int? get heatCategory {
+    final celsius = heatIndex ?? temp;
+    if (celsius == null) return null;
+    final fahrenheit = celsius * 9 / 5 + 32;
+    if (fahrenheit < 80) return 0;
+    if (fahrenheit < 90) return 1;
+    if (fahrenheit < 103) return 2;
+    if (fahrenheit < 125) return 3;
+    return 4;
+  }
+
+  /// Daylight with clear or partly cloudy sky. Heat index values assume shade;
+  /// full sun can add up to 15 °F (NWS).
+  bool get inDirectSun {
+    if (isDay != true) return false;
+    final code = conditionCode;
+    if (code != null) return code == 1000 || code == 1003;
+    return RegExp(r'sunny|clear|partly|cerah').hasMatch(
+      condition?.toLowerCase() ?? '',
+    );
+  }
+
+  /// [heatCategory] raised one level in direct sun, following OSHA's
+  /// "Using the Heat Index" advice to take the steps of the next highest risk
+  /// level when working in direct sun.
+  int? get heatRiskCategory {
+    final category = heatCategory;
+    if (category == null) return null;
+    return inDirectSun ? math.min(category + 1, 4) : category;
+  }
+
+  /// Rendah below Extreme Caution, Sedang at Extreme Caution, Tinggi at
+  /// Danger and above.
+  double? get heatSeverity => switch (heatRiskCategory) {
+    null => null,
+    0 || 1 => 0,
+    2 => 0.5,
+    3 => 0.75,
+    _ => 1,
+  };
 
   double _band(double value, double moderate, double high, double extreme) {
     if (value < moderate) return 0;
@@ -208,18 +247,14 @@ class Weather {
         );
       }
     }
-    if (temp != null) {
-      final perceivedHeat = heatIndex ?? temp!;
-      if (perceivedHeat >= 35) {
+    final heat = heatSeverity;
+    if (heat != null) {
+      if (heat >= 0.75) {
         recs.add(
           'Cari tempat teduh, minum cukup, dan kurangi aktivitas berat.',
         );
-      } else if (perceivedHeat >= 30) {
+      } else if (heat >= 0.5) {
         recs.add('Minum cukup dan beristirahat dari panas.');
-      } else if (temp! <= 0) {
-        recs.add('Gunakan pakaian hangat dan batasi paparan dingin.');
-      } else if (temp! < 15) {
-        recs.add('Gunakan pakaian hangat saat berada di luar.');
       }
     }
     if (humidity != null && humidity! < 40) {

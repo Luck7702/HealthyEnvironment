@@ -33,10 +33,12 @@ class EnvStatsColors {
     return context.appColors.green;
   }
 
-  static Color getTempAccent(BuildContext context, double? temp) {
-    if (temp == null) return context.appColors.muted;
-    if (temp >= 30) return context.appColors.coral;
-    if (temp > 27) return context.appColors.orange;
+  /// Colour for a component severity from [Weather.componentSeverity]:
+  /// green Rendah, orange Sedang, coral Tinggi.
+  static Color forSeverity(BuildContext context, double? severity) {
+    if (severity == null) return context.appColors.muted;
+    if (severity >= 0.75) return context.appColors.coral;
+    if (severity >= 0.5) return context.appColors.orange;
     return context.appColors.green;
   }
 }

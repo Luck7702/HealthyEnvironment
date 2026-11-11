@@ -96,7 +96,7 @@ void main() {
 
     expect(find.text('Tinggi'), findsOneWidget);
     expect(find.text('Data belum lengkap'), findsNothing);
-    expect(find.text('Terasa panas'), findsOneWidget);
+    expect(find.text('Hati-hati'), findsOneWidget);
   });
 
   for (final size in <Size>[
@@ -291,10 +291,10 @@ void main() {
 
     await tester.tap(find.text('Suhu'));
     await tester.pumpAndSettle();
-    expect(find.text('Suhu udara'), findsOneWidget);
+    expect(find.text('Suhu & indeks panas'), findsOneWidget);
     expect(find.textContaining('terasa'), findsWidgets);
-    expect(find.text('31-35°C'), findsOneWidget);
-    expect(find.text('Panas'), findsWidgets);
+    expect(find.text('39,4–51,7°C'), findsOneWidget);
+    expect(find.text('Bahaya'), findsWidgets);
   });
 
   testWidgets('swipe reveals weather and humidity metrics on mobile', (

@@ -116,43 +116,39 @@ class _EnvStatsState extends State<EnvStats> {
             value: weather.temp == null
                 ? '-'
                 : '${weather.temp!.toStringAsFixed(1)}°C',
-            status: _temperatureCardStatus(weather),
+            status: _heatLabel(weather.heatRiskCategory),
             icon: Icons.thermostat_outlined,
-            accent: EnvStatsColors.getTempAccent(
-              context,
-              weather.heatIndex ?? weather.temp,
-            ),
+            accent: EnvStatsColors.forSeverity(context, weather.heatSeverity),
             compact: widget.compactDashboard,
             comfortable: widget.comfortableDashboard,
             minimal: widget.minimalDashboard,
             height: widget.cardHeight,
             onTap: () => InfoDialog.showMetric(
               context,
-              title: 'Suhu udara',
+              title: 'Suhu & indeks panas',
               currentValue: _temperatureDialogValue(weather),
-              currentStatus: _temperatureStatus(
-                weather.heatIndex ?? weather.temp,
-              ),
+              currentStatus: _heatDialogStatus(weather),
               definition:
-                  'Suhu menunjukkan panas atau dingin udara. Jika kelembapan tersedia, risiko panas memakai indeks panas atau suhu yang terasa oleh tubuh.',
+                  'Indeks panas menggabungkan suhu dan kelembapan untuk memperkirakan panas yang terasa oleh tubuh di tempat teduh. Di bawah terik matahari nilainya bisa naik hingga 8°C, jadi saat siang cerah risiko dinaikkan satu tingkat.',
               impact:
-                  'Suhu tinggi dapat memicu dehidrasi dan kelelahan panas. Suhu rendah dapat menyebabkan tubuh kehilangan panas lebih cepat.',
-              guidance: _temperatureGuidance(weather.temp, weather.heatIndex),
+                  'Paparan lama atau aktivitas fisik saat indeks panas tinggi dapat menyebabkan kelelahan, kram panas, kelelahan panas (heat exhaustion), hingga sengatan panas (heat stroke).',
+              guidance: _heatGuidance(weather.heatRiskCategory),
               icon: Icons.thermostat_outlined,
-              accent: EnvStatsColors.getTempAccent(
-                context,
-                weather.heatIndex ?? weather.temp,
-              ),
+              accent: EnvStatsColors.forSeverity(context, weather.heatSeverity),
               ranges: const [
-                InfoRange('<10°C', 'Dingin'),
-                InfoRange('10-20°C', 'Sejuk'),
-                InfoRange('21-30°C', 'Hangat'),
-                InfoRange('31-35°C', 'Panas'),
-                InfoRange('>35°C', 'Sangat panas'),
+                InfoRange('<26,7°C', 'Normal · risiko Rendah'),
+                InfoRange(
+                  '26,7–32,2°C',
+                  'Hati-hati · Rendah (Sedang di bawah terik)',
+                ),
+                InfoRange(
+                  '32,2–39,4°C',
+                  'Ekstra hati-hati · Sedang (Tinggi di bawah terik)',
+                ),
+                InfoRange('39,4–51,7°C', 'Bahaya · Tinggi'),
+                InfoRange('≥51,7°C', 'Bahaya ekstrem · Tinggi'),
               ],
-              activeRange: _temperatureRangeIndex(
-                weather.heatIndex ?? weather.temp,
-              ),
+              activeRange: weather.heatCategory ?? -1,
             ),
           ),
         ];
@@ -288,24 +284,24 @@ class _EnvStatsState extends State<EnvStats> {
     return 'Ekstrem';
   }
 
-  static String _temperatureStatus(double? value) {
-    if (value == null) return 'Belum tersedia';
-    if (value < 10) return 'Dingin';
-    if (value <= 20) return 'Sejuk';
-    if (value <= 30) return 'Hangat';
-    if (value <= 35) return 'Panas';
-    return 'Sangat panas';
-  }
+  /// Indonesian names for the NWS heat index classifications.
+  static String _heatLabel(int? category) => switch (category) {
+    null => 'Belum tersedia',
+    0 => 'Normal',
+    1 => 'Hati-hati',
+    2 => 'Ekstra hati-hati',
+    3 => 'Bahaya',
+    _ => 'Bahaya ekstrem',
+  };
 
-  static String _temperatureCardStatus(Weather weather) {
-    final actual = _temperatureStatus(weather.temp);
-    final heatIndex = weather.heatIndex;
-    if (weather.temp == null ||
-        heatIndex == null ||
-        heatIndex < weather.temp! + 1) {
-      return actual;
+  static String _heatDialogStatus(Weather weather) {
+    final shade = _heatLabel(weather.heatCategory);
+    if (weather.heatCategory == null ||
+        weather.heatRiskCategory == weather.heatCategory) {
+      return shade;
     }
-    return 'Terasa ${_temperatureStatus(heatIndex).toLowerCase()}';
+    final sun = _heatLabel(weather.heatRiskCategory).toLowerCase();
+    return '$shade · $sun di bawah terik';
   }
 
   static String _temperatureDialogValue(Weather weather) {
@@ -335,15 +331,6 @@ class _EnvStatsState extends State<EnvStats> {
     return 4;
   }
 
-  static int _temperatureRangeIndex(double? value) {
-    if (value == null) return -1;
-    if (value < 10) return 0;
-    if (value <= 20) return 1;
-    if (value <= 30) return 2;
-    if (value <= 35) return 3;
-    return 4;
-  }
-
   static String _aqiGuidance(int? value) {
     if (value == null) return 'Perbarui data sebelum merencanakan aktivitas.';
     if (value <= 50) return 'Aktivitas luar dapat dilakukan seperti biasa.';
@@ -370,18 +357,13 @@ class _EnvStatsState extends State<EnvStats> {
     return 'Cari tempat teduh saat menunggu order. Gunakan jaket lengan panjang dan tabir surya.';
   }
 
-  static String _temperatureGuidance(double? temperature, double? heatIndex) {
-    if (temperature == null) {
-      return 'Perbarui data sebelum beraktivitas di luar.';
-    }
-    if (temperature < 10) {
-      return 'Gunakan pakaian hangat dan batasi paparan lama.';
-    }
-    final perceivedHeat = heatIndex ?? temperature;
-    if (perceivedHeat <= 30) return 'Sesuaikan pakaian dan tetap cukup minum.';
-    if (perceivedHeat <= 35) return 'Minum cukup dan beristirahat dari panas.';
-    return 'Cari tempat teduh dan kurangi aktivitas fisik berat.';
-  }
+  static String _heatGuidance(int? category) => switch (category) {
+    null => 'Perbarui data sebelum beraktivitas di luar.',
+    0 => 'Tetap minum air secara teratur.',
+    1 => 'Minum air secara teratur dan kenali tanda kelelahan panas.',
+    2 => 'Minum cukup dan istirahat di tempat teduh secara berkala.',
+    _ => 'Cari tempat teduh, minum cukup, dan kurangi aktivitas berat.',
+  };
 
   static String _conditionLabel(Weather weather) {
     final condition = weather.condition?.trim();
