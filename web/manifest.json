@@ -1,11 +1,11 @@
 {
-    "name": "Lingkungan Sehat",
-    "short_name": "Cek Cuaca",
+    "name": "LingkunganSehat",
+    "short_name": "LingkunganSehat",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#EAF7EF",
     "theme_color": "#EAF7EF",
-    "description": "Cek Kondisi Keamanan Cuaca",
+    "description": "Cek risiko kesehatan di luar ruangan: kualitas udara (ISPU), UV, panas, dan cuaca.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
@@ -31,5 +31,6 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "lang": "id"
 }
