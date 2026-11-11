@@ -322,7 +322,8 @@ void main() {
     await tester.tap(find.text('Kelembapan'));
     await tester.pumpAndSettle();
     expect(find.text('Kelembapan udara'), findsOneWidget);
-    expect(find.text('40-70%'), findsOneWidget);
-    expect(find.text('Nyaman'), findsWidgets);
+    expect(find.text('≥18,3°C'), findsOneWidget);
+    expect(find.text('Gerah'), findsWidgets);
+    expect(find.textContaining('titik embun'), findsWidgets);
   });
 }

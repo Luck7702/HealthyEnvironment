@@ -187,9 +187,9 @@ class _EnvStatsState extends State<EnvStats> {
           _StatCard(
             label: 'Kelembapan',
             value: _humidityValue(widget.weather.humidity),
-            status: _humidityStatus(widget.weather.humidity),
+            status: _comfortLabel(widget.weather.dewPointComfort),
             icon: Icons.water_drop_outlined,
-            accent: _humidityAccent(context, widget.weather.humidity),
+            accent: _humidityAccent(context, widget.weather),
             compact: widget.compactDashboard,
             comfortable: widget.comfortableDashboard,
             minimal: widget.minimalDashboard,
@@ -197,24 +197,21 @@ class _EnvStatsState extends State<EnvStats> {
             onTap: () => InfoDialog.showMetric(
               context,
               title: 'Kelembapan udara',
-              currentValue: _humidityValue(
-                widget.weather.humidity,
-                unavailable: 'Belum tersedia',
-              ),
-              currentStatus: _humidityStatus(widget.weather.humidity),
+              currentValue: _humidityDialogValue(widget.weather),
+              currentStatus: _comfortLabel(widget.weather.dewPointComfort),
               definition:
-                  'Kelembapan menunjukkan banyaknya uap air di udara dibandingkan kapasitas maksimum udara pada suhu saat ini.',
+                  'Kelembapan relatif menunjukkan banyaknya uap air di udara. Rasa gerah lebih tepat diukur dengan titik embun, yaitu suhu saat udara jenuh uap air. Kategori di bawah memakai titik embun.',
               impact:
-                  'Udara lembap dapat membuat panas terasa lebih berat. Udara terlalu kering dapat memicu rasa tidak nyaman.',
-              guidance: _humidityGuidance(widget.weather.humidity),
+                  'Udara lembap membuat keringat sulit menguap, sehingga panas terasa lebih berat. Pengaruh ini sudah dihitung dalam indeks panas, jadi kelembapan hanya informasi dan tidak dinilai sebagai risiko tersendiri.',
+              guidance: _humidityGuidance(widget.weather.dewPointComfort),
               icon: Icons.water_drop_outlined,
-              accent: _humidityAccent(context, widget.weather.humidity),
+              accent: _humidityAccent(context, widget.weather),
               ranges: const [
-                InfoRange('<40%', 'Kering'),
-                InfoRange('40-70%', 'Nyaman'),
-                InfoRange('>70%', 'Lembap'),
+                InfoRange('≤12,8°C', 'Kering dan nyaman'),
+                InfoRange('12,8–18,3°C', 'Lengket'),
+                InfoRange('≥18,3°C', 'Gerah'),
               ],
-              activeRange: _humidityRangeIndex(widget.weather.humidity),
+              activeRange: widget.weather.dewPointComfort ?? -1,
             ),
           ),
         ];
@@ -436,14 +433,13 @@ class _EnvStatsState extends State<EnvStats> {
     return 'Aktivitas luar dapat dilakukan seperti biasa.';
   }
 
-  static String _humidityStatus(double? humidity) {
-    if (humidity == null || humidity < 0 || humidity > 100) {
-      return 'Belum tersedia';
-    }
-    if (humidity < 40) return 'Kering';
-    if (humidity <= 70) return 'Nyaman';
-    return 'Lembap';
-  }
+  /// NWS dew point comfort level names.
+  static String _comfortLabel(int? comfort) => switch (comfort) {
+    null => 'Belum tersedia',
+    0 => 'Nyaman',
+    1 => 'Lengket',
+    _ => 'Gerah',
+  };
 
   static String _humidityValue(double? humidity, {String unavailable = '-'}) {
     if (humidity == null || humidity < 0 || humidity > 100) {
@@ -452,29 +448,24 @@ class _EnvStatsState extends State<EnvStats> {
     return '${humidity.round()}%';
   }
 
-  static int _humidityRangeIndex(double? humidity) {
-    if (humidity == null || humidity < 0 || humidity > 100) return -1;
-    if (humidity < 40) return 0;
-    if (humidity <= 70) return 1;
-    return 2;
+  static String _humidityDialogValue(Weather weather) {
+    final value = _humidityValue(weather.humidity, unavailable: 'Belum tersedia');
+    final dewPoint = weather.dewPoint;
+    if (dewPoint == null) return value;
+    return '$value · titik embun ${dewPoint.toStringAsFixed(1)}°C';
   }
 
-  static Color _humidityAccent(BuildContext context, double? humidity) {
-    final range = _humidityRangeIndex(humidity);
-    if (range == -1) return context.appColors.muted;
-    if (range == 1) return context.appColors.green;
-    return context.appColors.orange;
-  }
+  /// Humidity is information only, so it uses a neutral colour.
+  static Color _humidityAccent(BuildContext context, Weather weather) =>
+      weather.dewPointComfort == null
+      ? context.appColors.muted
+      : context.appColors.blue;
 
-  static String _humidityGuidance(double? humidity) {
-    final range = _humidityRangeIndex(humidity);
-    if (range == -1) return 'Perbarui data sebelum beraktivitas di luar.';
-    if (range == 0) return 'Minum cukup dan lindungi kulit dari udara kering.';
-    if (range == 2) {
-      return 'Minum cukup dan beristirahat bila panas terasa berat.';
-    }
-    return 'Kelembapan berada dalam rentang nyaman.';
-  }
+  static String _humidityGuidance(int? comfort) => switch (comfort) {
+    null => 'Perbarui data sebelum beraktivitas di luar.',
+    0 => 'Tidak perlu tindakan khusus untuk kelembapan.',
+    _ => 'Minum air secara teratur; risiko panas dihitung lewat indeks panas.',
+  };
 }
 
 class _CardRow extends StatelessWidget {

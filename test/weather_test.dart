@@ -109,6 +109,19 @@ void main() {
       expect(sunnyDay.componentSeverity['Suhu'], 0.5);
     });
 
+    test('dew point comfort follows NWS scale and is not scored', () {
+      const humid = Weather(aqi: 20, uv: 1, temp: 25, humidity: 85);
+      const mild = Weather(temp: 25, humidity: 50);
+      const dry = Weather(temp: 25, humidity: 30);
+      expect(humid.dewPoint, closeTo(22.3, 0.2));
+      expect(humid.dewPointComfort, 2);
+      expect(mild.dewPointComfort, 1);
+      expect(dry.dewPointComfort, 0);
+      expect(humid.componentSeverity.containsKey('Kelembapan'), isFalse);
+      expect(humid.getRiskLevel, 'Rendah');
+      expect(dry.recommendations, isEmpty);
+    });
+
     test('cold air does not raise risk', () {
       const weather = Weather(aqi: 20, uv: 1, temp: -5);
       expect(weather.componentSeverity['Suhu'], 0);

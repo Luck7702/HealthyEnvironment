@@ -66,6 +66,29 @@ class Weather {
     return (heatIndexF - 32) * 5 / 9;
   }
 
+  /// Dew point in °C from [temp] and [humidity] (Magnus formula with
+  /// a = 17.62, b = 243.12 °C).
+  double? get dewPoint {
+    if (temp == null || humidity == null) return null;
+    if (humidity! <= 0 || humidity! > 100) return null;
+    const a = 17.62;
+    const b = 243.12;
+    final gamma = math.log(humidity! / 100) + a * temp! / (b + temp!);
+    return b * gamma / (a - gamma);
+  }
+
+  /// NWS summer dew point comfort level, for information only (not scored):
+  /// 0 dry and comfortable (≤ 55 °F), 1 sticky (55–65 °F),
+  /// 2 oppressive (≥ 65 °F). Source: NWS, https://www.weather.gov/arx/heat_index
+  int? get dewPointComfort {
+    final celsius = dewPoint;
+    if (celsius == null) return null;
+    final fahrenheit = celsius * 9 / 5 + 32;
+    if (fahrenheit <= 55) return 0;
+    if (fahrenheit < 65) return 1;
+    return 2;
+  }
+
   /// NWS heat index classification of [heatIndex] (or air temperature when
   /// humidity is unavailable): 0 below Caution, 1 Caution (80–90 °F),
   /// 2 Extreme Caution (90–103 °F), 3 Danger (103–124 °F),
@@ -257,9 +280,6 @@ class Weather {
       } else if (heat >= 0.5) {
         recs.add('Minum cukup dan beristirahat dari panas.');
       }
-    }
-    if (humidity != null && humidity! < 40) {
-      recs.add('Minum cukup karena udara kering.');
     }
     final severity = _conditionSeverity;
     if (_hasThunder) {
