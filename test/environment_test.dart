@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:lingkungan_sehat/models/airquality.dart';
@@ -119,5 +120,28 @@ void main() {
 
     expect(data.status, EnvironmentStatus.serverMisconfigured);
     expect(data.location, 'Bandung');
+  });
+
+  test('GPS position is rounded to two decimals before requesting', () async {
+    String? requested;
+    await loadEnvironment(
+      locationResolver: () async => Position(
+        latitude: -6.200412,
+        longitude: 106.816633,
+        timestamp: DateTime(2026),
+        accuracy: 0,
+        altitude: 0,
+        altitudeAccuracy: 0,
+        heading: 0,
+        headingAccuracy: 0,
+        speed: 0,
+        speedAccuracy: 0,
+      ),
+      fetcher: (query) async {
+        requested = query;
+        return {'status': EnvironmentStatus.networkError};
+      },
+    );
+    expect(requested, '-6.20,106.82');
   });
 }

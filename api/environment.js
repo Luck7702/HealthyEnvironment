@@ -110,7 +110,10 @@ function parseQuery(url) {
     const lat = Number(latText);
     const lon = Number(lonText);
     if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
-    return { raw: query, normalized: `${lat},${lon}` };
+    // ~1.1 km grid: nearby GPS fixes share one cache entry, and precise
+    // positions are never forwarded upstream.
+    const rounded = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+    return { raw: rounded, normalized: rounded };
   }
   if (!/^[\p{L}\p{N}][\p{L}\p{N} .,'()\-_/]*$/u.test(query)) return null;
   return { raw: query, normalized: query.toLocaleLowerCase('en-US').replace(/\s+/gu, ' ') };
@@ -265,4 +268,4 @@ async function handler(req, res) {
 }
 
 module.exports = handler;
-module.exports._test = { fetchWeather, parseUpstreamResponse, publicWeather };
+module.exports._test = { fetchWeather, parseUpstreamResponse, publicWeather, parseQuery };

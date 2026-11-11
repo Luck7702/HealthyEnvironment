@@ -102,7 +102,11 @@ Future<EnvData> loadEnvironment({
         status: EnvironmentStatus.locationUnavailable,
       );
     }
-    query = '${position.latitude},${position.longitude}';
+    // Weather data is far coarser than GPS; ~1.1 km keeps requests cacheable
+    // and avoids sending a precise position.
+    query =
+        '${position.latitude.toStringAsFixed(2)},'
+        '${position.longitude.toStringAsFixed(2)}';
   } else {
     query = requestedQuery;
   }
@@ -161,7 +165,9 @@ class LocationService {
       }
 
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        // City-level is enough for weather; high accuracy waits for a GPS
+        // fix and drains battery on every refresh.
+        desiredAccuracy: LocationAccuracy.medium,
       ).timeout(const Duration(seconds: 15));
     } catch (_) {
       return null;
