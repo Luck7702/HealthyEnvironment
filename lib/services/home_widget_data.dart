@@ -3,7 +3,7 @@ import 'environment.dart';
 
 /// Colours matching the app's Rendah / Sedang / Tinggi palette.
 const _riskColors = {
-  'Rendah': '#2D8B62',
+  'Rendah': '#1F9964',
   'Sedang': '#D96F00',
   'Tinggi': '#D93F39',
 };
