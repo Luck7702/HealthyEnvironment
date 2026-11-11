@@ -594,7 +594,7 @@ class _RiskPanel extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/illustrations/risk-landscape.png',
+              'assets/illustrations/risk-landscape.webp',
               fit: compact ? BoxFit.fill : BoxFit.cover,
               alignment: Alignment.bottomCenter,
             ),
