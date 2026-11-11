@@ -35,7 +35,10 @@ ValueListenable<PwaInstallMode> get pwaInstallMode {
   final existing = _mode;
   if (existing != null) return existing;
   final notifier = _mode = ValueNotifier(_currentMode());
-  _lsPwa?.onChange = (() => notifier.value = _currentMode()).toJS;
+  // JS callbacks must return void, so use a block body (not `=>`).
+  _lsPwa?.onChange = () {
+    notifier.value = _currentMode();
+  }.toJS;
   return notifier;
 }
 
