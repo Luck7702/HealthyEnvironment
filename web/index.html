@@ -48,6 +48,44 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    // PWA install support for the in-app "Pasang" banner. The browser's own
+    // install UI is left enabled; the saved event lets the banner reuse it.
+    window.lsPwa = {
+      deferred: null,
+      onChange: null,
+      canInstall() { return this.deferred !== null; },
+      isStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches ||
+          window.navigator.standalone === true;
+      },
+      isIos() { return /iphone|ipad|ipod/i.test(window.navigator.userAgent); },
+      isDismissed() {
+        try { return localStorage.getItem('lingkungan_sehat.install_dismissed') === '1'; }
+        catch (_) { return false; }
+      },
+      dismiss() {
+        try { localStorage.setItem('lingkungan_sehat.install_dismissed', '1'); } catch (_) {}
+      },
+      async install() {
+        const prompt = this.deferred;
+        if (!prompt) return 'unavailable';
+        this.deferred = null;
+        prompt.prompt();
+        const choice = await prompt.userChoice;
+        if (this.onChange) this.onChange();
+        return choice.outcome;
+      },
+    };
+    window.addEventListener('beforeinstallprompt', (event) => {
+      window.lsPwa.deferred = event;
+      if (window.lsPwa.onChange) window.lsPwa.onChange();
+    });
+    window.addEventListener('appinstalled', () => {
+      window.lsPwa.deferred = null;
+      if (window.lsPwa.onChange) window.lsPwa.onChange();
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
   <!-- Vercel Web Analytics (cookieless page views) -->
   <script>

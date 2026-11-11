@@ -12,6 +12,7 @@ import 'package:lingkungan_sehat/services/location_preferences.dart';
 import 'package:lingkungan_sehat/services/share_message.dart';
 import 'package:lingkungan_sehat/widgets/brand_mark.dart';
 import 'package:lingkungan_sehat/widgets/env_stats.dart';
+import 'package:lingkungan_sehat/widgets/install_banner.dart';
 import 'package:lingkungan_sehat/widgets/location_bar.dart';
 import 'package:lingkungan_sehat/widgets/recommendation_list.dart';
 import 'package:lingkungan_sehat/widgets/risk_meter.dart';
@@ -49,6 +50,8 @@ class HomeScreenState extends State<HomeScreen> {
       const Duration(minutes: 5),
       (_) => initializeEnvironment(showLoading: false),
     );
+  }
+    });
   }
 
   @override
@@ -307,6 +310,8 @@ class HomeScreenState extends State<HomeScreen> {
                         comfortable: tallPhone,
                         minimalDashboard: true,
                       ),
+                      const SizedBox(height: 16),
+                      const InstallBanner(),
                     ] else ...[
                       SizedBox(height: gap),
                       _RiskPanel(
@@ -335,6 +340,8 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
                       RecommendationSection(weather: envData.weather),
+                      const SizedBox(height: 12),
+                      const InstallBanner(),
                     ],
                   ],
                 ),

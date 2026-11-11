@@ -5,6 +5,7 @@ import 'package:lingkungan_sehat/models/weather.dart';
 import 'package:lingkungan_sehat/screens/home.dart';
 import 'package:lingkungan_sehat/screens/information.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
+import 'package:lingkungan_sehat/widgets/install_banner.dart';
 
 void main() {
   const environment = EnvData(
@@ -348,5 +349,14 @@ void main() {
     expect(find.text('Sumber & metode'), findsOneWidget);
     expect(find.text('NOAA/NWS: klasifikasi indeks panas'), findsOneWidget);
     expect(find.text('BMKG: peringatan dini cuaca resmi'), findsOneWidget);
+  });
+
+  testWidgets('install banner stays hidden outside the browser', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: InstallBanner())),
+    );
+    expect(find.byKey(const Key('install-banner')), findsNothing);
   });
 }
