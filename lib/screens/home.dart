@@ -50,7 +50,21 @@ class HomeScreenState extends State<HomeScreen> {
       const Duration(minutes: 5),
       (_) => initializeEnvironment(showLoading: false),
     );
+    _openShortcutTarget();
   }
+
+  /// Opens the screen requested by a home-screen shortcut (web manifest
+  /// `shortcuts`), e.g. `?buka=info` or `?buka=lokasi`.
+  void _openShortcutTarget() {
+    final target = Uri.base.queryParameters['buka'];
+    if (target != 'info' && target != 'lokasi') return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (target == 'info') {
+        _openInformation();
+      } else {
+        _openLocationSearch();
+      }
     });
   }
 

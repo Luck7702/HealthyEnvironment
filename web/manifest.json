@@ -32,5 +32,33 @@
             "purpose": "maskable"
         }
     ],
-    "lang": "id"
+    "lang": "id",
+    "shortcuts": [
+        {
+            "name": "Sumber & info",
+            "short_name": "Info",
+            "description": "Cara aplikasi menilai risiko dan sumbernya",
+            "url": "./?buka=info",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Ganti lokasi",
+            "short_name": "Lokasi",
+            "description": "Cek risiko di kota lain",
+            "url": "./?buka=lokasi",
+            "icons": [
+                {
+                    "src": "icons/Icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ]
 }
