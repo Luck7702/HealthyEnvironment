@@ -1,6 +1,19 @@
-# HealthyEnvironment App
+# LingkunganSehat
 
-Flutter web app for outdoor environment risk prevention.
+**Live app: [app.lingkungansehat.my.id](https://app.lingkungansehat.my.id)**
+
+LingkunganSehat ("Healthy Environment") is a mobile-first web app that rates the outdoor health risk where you are, right now, as *Rendah*, *Sedang* or *Tinggi* (low, moderate, high). It gives short advice in Bahasa Indonesia. It is built for drivers and riders who spend the day outside.
+
+The app uses your GPS position or a city you enter. It combines four hazards:
+
+- **Air quality:** US EPA AQI from PM2.5 and PM10
+- **UV:** the WHO UV Index
+- **Heat:** the NWS heat index from temperature and humidity
+- **Weather:** thunder, heavy rain and other hazardous conditions
+
+The overall rating is the worst of the four, and data refreshes every five minutes. Ratings are indicative, not medical advice. See [Environmental risk analysis](#environmental-risk-analysis) for thresholds and sources.
+
+**Stack:** Flutter web client, plus a Vercel Node.js function (`api/environment.js`) that proxies WeatherAPI.com so the API key never reaches the browser.
 
 ## Local development
 
@@ -78,8 +91,6 @@ It returns stable safe JSON errors: `invalid_query`, `location_not_found`, `rate
 
 Environment data loads on startup, refreshes every five minutes, stops loading after location, network, or invalid-response failures, preserves last successful readings during refresh failure, and exposes retry. Initial failures provide retry plus manual location entry.
 
-Current verification: `fvm flutter analyze` and `fvm flutter test` pass after integration into `dev-overhaul`. Production builds, Android SDK validation, and deployed integration remain pending.
-
 ## Environmental risk analysis
 
 Risk uses strongest known hazard across AQI, UV Index, heat exposure, and weather condition. Heat exposure uses the NWS heat-index formula when temperature and relative humidity are available, then falls back to air temperature when humidity is unavailable. AQI, UV, and heat cutoffs are app heuristics: AQI `<51` low, `51–150` moderate, `>=151` high; UV `<3` low, `3–7` moderate, `>=8` high; heat exposure `15 <= T < 30°C` low, `30 <= T < 35°C` moderate, `T >= 35°C` high, air temperature `<15°C` moderate, air temperature `<=0°C` high. Decimal readings stay precise. These are not a validated medical score or probability.
@@ -89,3 +100,7 @@ Invalid or missing readings remain unknown (`null`). Known elevated hazards rema
 AQI guidance references [EPA AQI breakpoints](https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html) and [EPA PM2.5 rounding/truncation guidance](https://nepis.epa.gov/Exe/ZyPURL.cgi?Dockey=P101AP0Q.TXT). UV guidance references [WHO UV Index guidance](https://www.who.int/news-room/questions-and-answers/item/radiation-the-ultraviolet-%28uv%29-index): protection begins at 3+, with midday exposure avoidance at 8+. Weather condition interpretation references [WeatherAPI condition codes](https://www.weatherapi.com/docs/weather_conditions.json), [NWS heat safety](https://www.weather.gov/safety/heat-during), and [NWS lightning safety](https://www.weather.gov/safety/lightning-safety). PM2.5/PM10-derived AQI is a current-sample estimate, not official daily, NowCast, or all-pollutant AQI.
 
 If an actual WeatherAPI key was ever supplied to an old client build or external build system, rotate it there. Repository config previously used an empty `OPENWEATHER_KEY` default; no literal credential is confirmed in tracked source. Rotation does not remove secrets from existing build artifacts or repository history.
+
+## License
+
+[MIT](LICENSE)
