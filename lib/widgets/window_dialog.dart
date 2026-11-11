@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
+import '../config/sources.dart';
+import 'source_links.dart';
 
 class InfoRange {
   final String range;
@@ -22,6 +24,7 @@ class InfoDialog {
     required Color accent,
     required List<InfoRange> ranges,
     required int activeRange,
+    List<Source> sources = const [],
   }) {
     return showDialog<void>(
       context: context,
@@ -84,6 +87,19 @@ class InfoDialog {
                           body: guidance,
                           accent: accent,
                         ),
+                        if (sources.isNotEmpty) ...[
+                          const SizedBox(height: 18),
+                          Text(
+                            'Sumber',
+                            style: TextStyle(
+                              color: context.appColors.forest,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          SourceLinks(sources: sources),
+                        ],
                       ],
                     ),
                   ),

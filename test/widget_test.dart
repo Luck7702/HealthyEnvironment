@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:lingkungan_sehat/models/weather.dart';
 import 'package:lingkungan_sehat/screens/home.dart';
+import 'package:lingkungan_sehat/screens/information.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
 
 void main() {
@@ -286,6 +287,14 @@ void main() {
     expect(find.text('Indeks UV'), findsOneWidget);
     expect(find.text('6-7'), findsOneWidget);
     expect(find.text('Tinggi'), findsWidgets);
+    expect(find.text('Tinggi · risiko Sedang'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('WHO: Indeks UV'),
+      100,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Sumber'), findsOneWidget);
+    expect(find.text('WHO: Indeks UV'), findsOneWidget);
     await tester.tap(find.text('Tutup'));
     await tester.pumpAndSettle();
 
@@ -325,5 +334,19 @@ void main() {
     expect(find.text('≥18,3°C'), findsOneWidget);
     expect(find.text('Gerah'), findsWidgets);
     expect(find.textContaining('titik embun'), findsWidgets);
+  });
+
+  testWidgets('information screen shows disclaimer and sources', (
+    WidgetTester tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(const MaterialApp(home: InformationScreen()));
+
+    expect(find.text('Bukan saran medis'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('BMKG: peringatan dini cuaca resmi'), 200);
+    expect(find.text('Sumber & metode'), findsOneWidget);
+    expect(find.text('NOAA/NWS: klasifikasi indeks panas'), findsOneWidget);
+    expect(find.text('BMKG: peringatan dini cuaca resmi'), findsOneWidget);
   });
 }

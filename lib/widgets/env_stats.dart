@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
 import '../config/colors_theme.dart';
+import '../config/sources.dart';
 import '../models/weather.dart';
 import 'window_dialog.dart';
 
@@ -84,6 +85,7 @@ class _EnvStatsState extends State<EnvStats> {
                 InfoRange('301+', 'Berbahaya · risiko Tinggi'),
               ],
               activeRange: _aqiRangeIndex(weather.aqi),
+              sources: const [Sources.epaAqi, Sources.weatherApi],
             ),
           ),
           _StatCard(
@@ -124,6 +126,7 @@ class _EnvStatsState extends State<EnvStats> {
                 InfoRange('11+', 'Ekstrem · risiko Tinggi'),
               ],
               activeRange: _uvRangeIndex(weather.uv),
+              sources: const [Sources.whoUv, Sources.icnirpUv],
             ),
           ),
           _StatCard(
@@ -164,6 +167,7 @@ class _EnvStatsState extends State<EnvStats> {
                 InfoRange('≥51,7°C', 'Bahaya ekstrem · Tinggi'),
               ],
               activeRange: weather.heatCategory ?? -1,
+              sources: const [Sources.nwsHeatIndex, Sources.oshaHeatIndex],
             ),
           ),
         ];
@@ -197,6 +201,7 @@ class _EnvStatsState extends State<EnvStats> {
                 InfoRange('Bahaya', 'Petir atau cuaca ekstrem'),
               ],
               activeRange: _conditionRangeIndex(widget.weather),
+              sources: const [Sources.nwsLightning, Sources.weatherApi],
             ),
           ),
           _StatCard(
@@ -227,6 +232,7 @@ class _EnvStatsState extends State<EnvStats> {
                 InfoRange('≥18,3°C', 'Gerah'),
               ],
               activeRange: widget.weather.dewPointComfort ?? -1,
+              sources: const [Sources.nwsDewPoint],
             ),
           ),
         ];

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
+import '../config/sources.dart';
+import '../widgets/source_links.dart';
 
 class InformationScreen extends StatelessWidget {
   const InformationScreen({super.key});
@@ -52,6 +54,34 @@ class InformationScreen extends StatelessWidget {
                 'LingkunganSehat membantu pengemudi memahami kondisi sekitar agar dapat bekerja dengan lebih waspada dan menjaga kesehatan.',
             color: context.appColors.blue,
           ),
+          SizedBox(height: 12),
+          InfoCard(
+            icon: Icons.info_outline,
+            title: 'Bukan saran medis',
+            description:
+                'Penilaian risiko bersifat indikatif. Data berasal dari model WeatherAPI.com, bukan pengukuran resmi. Untuk peringatan resmi, ikuti BMKG (cuaca) dan ISPU dari Kementerian Lingkungan Hidup (kualitas udara).',
+            color: context.appColors.orange,
+          ),
+          SizedBox(height: 24),
+          Text(
+            'Sumber & metode',
+            style: TextStyle(
+              color: context.appColors.ink,
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Risiko keseluruhan memakai bahaya tertinggi dari kualitas udara (skala AQI US EPA), UV (WHO), panas (indeks panas NWS, naik satu tingkat saat siang cerah sesuai OSHA), dan cuaca (petir dan hujan lebat). Kelembapan hanya ditampilkan sebagai informasi.',
+            style: TextStyle(
+              color: context.appColors.muted,
+              fontSize: 15,
+              height: 1.4,
+            ),
+          ),
+          SizedBox(height: 8),
+          SourceLinks(sources: Sources.all),
         ],
       ),
     );
