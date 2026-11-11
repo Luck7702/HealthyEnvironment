@@ -19,4 +19,4 @@ flutter pub get
 # preview or reaches production. Infos (style lints) are reported, not fatal.
 flutter analyze --no-fatal-infos
 flutter test
-flutter build web --release
+flutter build web --release --wasm
