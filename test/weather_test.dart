@@ -201,6 +201,21 @@ void main() {
       );
     });
 
+    test('fog is moderate weather risk but mist is not', () {
+      const fog = Weather(condition: 'Fog', conditionCode: 1135);
+      const freezingFog = Weather(condition: 'Freezing fog', conditionCode: 1147);
+      const mist = Weather(condition: 'Mist', conditionCode: 1030);
+      const fogText = Weather(condition: 'Kabut');
+      expect(fog.componentSeverity['Cuaca'], 0.5);
+      expect(freezingFog.componentSeverity['Cuaca'], 0.5);
+      expect(fogText.componentSeverity['Cuaca'], 0.5);
+      expect(mist.componentSeverity['Cuaca'], 0);
+      expect(
+        fog.recommendations,
+        contains('Waspadai cuaca buruk; berhati-hati saat berkendara.'),
+      );
+    });
+
     test('severe non-thunder weather does not produce lightning advice', () {
       const weather = Weather(
         aqi: 20,

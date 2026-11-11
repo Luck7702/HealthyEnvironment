@@ -177,8 +177,8 @@ class _EnvStatsState extends State<EnvStats> {
               icon: _conditionIcon(widget.weather),
               accent: _conditionAccent(context, widget.weather),
               ranges: const [
-                InfoRange('Normal', 'Cerah, berawan, atau berkabut ringan'),
-                InfoRange('Waspada', 'Hujan, salju, asap, atau kabut tebal'),
+                InfoRange('Normal', 'Cerah, berawan, atau kabut tipis (mist)'),
+                InfoRange('Waspada', 'Hujan, salju, asap, atau kabut (fog)'),
                 InfoRange('Bahaya', 'Petir atau cuaca ekstrem'),
               ],
               activeRange: _conditionRangeIndex(widget.weather),
@@ -381,7 +381,8 @@ class _EnvStatsState extends State<EnvStats> {
     if (RegExp(r'drizzle|gerimis').hasMatch(text)) return 'Gerimis';
     if (RegExp(r'rain|hujan').hasMatch(text)) return 'Hujan';
     if (RegExp(r'smoke|smoky|haze|asap').hasMatch(text)) return 'Berasap';
-    if (RegExp(r'fog|mist|kabut').hasMatch(text)) return 'Berkabut';
+    if (RegExp(r'fog|kabut').hasMatch(text)) return 'Berkabut';
+    if (text.contains('mist')) return 'Kabut tipis';
     if (RegExp(r'overcast').hasMatch(text)) return 'Mendung';
     if (RegExp(r'cloud|berawan').hasMatch(text)) return 'Berawan';
     if (RegExp(r'clear|sunny|cerah').hasMatch(text)) return 'Cerah';
@@ -409,7 +410,9 @@ class _EnvStatsState extends State<EnvStats> {
     if (label == 'Cerah') return Icons.wb_sunny_outlined;
     if (label == 'Berawan' || label == 'Mendung') return Icons.cloud_outlined;
     if (label == 'Badai petir') return Icons.thunderstorm_outlined;
-    if (label == 'Berkabut' || label == 'Berasap') return Icons.foggy;
+    if (label == 'Berkabut' || label == 'Kabut tipis' || label == 'Berasap') {
+      return Icons.foggy;
+    }
     if (label == 'Salju') return Icons.ac_unit;
     if (label == '-') return Icons.cloud_off_outlined;
     return Icons.umbrella_outlined;

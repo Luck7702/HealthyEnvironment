@@ -147,6 +147,8 @@ class Weather {
         1069,
         1072,
         1114,
+        1135,
+        1147,
         1150,
         1153,
         1168,
@@ -172,16 +174,15 @@ class Weather {
       }.contains(code)) {
         return 0.5;
       }
-      if ({1000, 1003, 1006, 1009, 1030, 1135, 1147}.contains(code)) return 0;
+      if ({1000, 1003, 1006, 1009, 1030}.contains(code)) return 0;
     }
     if (_hasThunder || text.contains('blizzard')) return 1;
     if (RegExp(r'rain|hujan|drizzle|gerimis|sleet|salju|snow').hasMatch(text)) {
       return 0.5;
     }
     if (_hasSmokeOrHaze) return 0.5;
-    if (RegExp(
-      r'clear|sunny|cloud|overcast|mist|fog|cerah|berawan|kabut',
-    ).hasMatch(text)) {
+    if (RegExp(r'fog|kabut').hasMatch(text)) return 0.5;
+    if (RegExp(r'clear|sunny|cloud|overcast|mist|cerah|berawan').hasMatch(text)) {
       return 0;
     }
     if (text.isEmpty || text == 'not specified') return null;
