@@ -280,13 +280,10 @@ class LocationBar extends StatelessWidget {
                             : const Icon(Icons.refresh_rounded, size: 25),
                       )
                     else
-                      TextButton.icon(
+                      IconButton(
                         onPressed: loading || !retryEnabled ? null : onRetry,
-                        style: TextButton.styleFrom(
-                          foregroundColor: context.appColors.muted,
-                          padding: const EdgeInsets.symmetric(horizontal: 7),
-                          minimumSize: const Size(0, 46),
-                        ),
+                        tooltip: 'Perbarui data',
+                        padding: EdgeInsets.zero,
                         icon: Container(
                           width: 48,
                           height: 48,
@@ -307,14 +304,6 @@ class LocationBar extends StatelessWidget {
                                   size: 34,
                                   color: context.appColors.green,
                                 ),
-                        ),
-                        label: Text(
-                          'Perbarui',
-                          style: TextStyle(
-                            color: context.appColors.muted,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
                         ),
                       ),
                   ],

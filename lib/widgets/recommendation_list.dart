@@ -84,30 +84,33 @@ class RecommendationSection extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        SizedBox(
-          height: minimalDashboard
-              ? 6
-              : compact
-              ? 2
-              : 4,
-        ),
-        Text(
-          weather.riskDescription,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: context.appColors.muted,
-            fontSize: minimalDashboard
-                ? 13
+        // Only explain the data state when it is not complete.
+        if (weather.riskState != RiskState.known) ...[
+          SizedBox(
+            height: minimalDashboard
+                ? 6
                 : compact
-                ? comfortable
-                      ? 12
-                      : 11
-                : 15,
-            height: minimalDashboard ? 1.25 : 1.15,
-            fontWeight: FontWeight.w500,
+                ? 2
+                : 4,
           ),
-        ),
+          Text(
+            weather.riskDescription,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: context.appColors.muted,
+              fontSize: minimalDashboard
+                  ? 13
+                  : compact
+                  ? comfortable
+                        ? 12
+                        : 11
+                  : 15,
+              height: minimalDashboard ? 1.25 : 1.15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
         SizedBox(
           height: minimalDashboard
               ? 14

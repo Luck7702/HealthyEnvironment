@@ -430,11 +430,6 @@ class _PageHeader extends StatelessWidget {
         : compact
         ? 20.0
         : 30.0;
-    final subtitleSize = narrow
-        ? 10.0
-        : compact
-        ? 12.0
-        : 16.0;
     final buttonSize = narrow
         ? 44.0
         : compact
@@ -456,35 +451,16 @@ class _PageHeader extends StatelessWidget {
         BrandMark(size: markSize),
         SizedBox(width: narrow ? 8 : 15),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'LingkunganSehat',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: context.appColors.forest,
-                  fontSize: titleSize,
-                  height: 1.2,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (!compact) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Lingkungan lebih sehat, hidup lebih baik',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: context.appColors.muted,
-                    fontSize: subtitleSize,
-                    height: 1,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ],
+          child: Text(
+            'LingkunganSehat',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: context.appColors.forest,
+              fontSize: titleSize,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
