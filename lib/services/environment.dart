@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -255,7 +254,9 @@ class EnvironmentService {
       if (response.statusCode != 200) return _parseProxyError(response);
       return parseEnvironmentPayload(jsonDecode(response.body));
     } catch (error) {
-      if (error is SocketException || error is TimeoutException) {
+      // package:http raises ClientException for connection failures on every
+      // platform (it wraps dart:io's SocketException on mobile).
+      if (error is http.ClientException || error is TimeoutException) {
         return {'status': EnvironmentStatus.networkError};
       }
       if (error is FormatException || error is TypeError) {

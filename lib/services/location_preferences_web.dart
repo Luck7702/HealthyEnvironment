@@ -1,15 +1,29 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
-
-// ignore: deprecated_member_use
-import 'dart:html' as html;
+import 'dart:js_interop';
 
 const _locationKey = 'lingkungan_sehat.location';
 
+extension type _Storage._(JSObject _) implements JSObject {
+  external String? getItem(String key);
+  external void setItem(String key, String value);
+}
+
+@JS('localStorage')
+external _Storage get _localStorage;
+
 String? readSavedLocation() {
-  final location = html.window.localStorage[_locationKey]?.trim();
-  return location == null || location.isEmpty ? null : location;
+  try {
+    final location = _localStorage.getItem(_locationKey)?.trim();
+    return location == null || location.isEmpty ? null : location;
+  } catch (_) {
+    // Storage can be blocked (private mode, disabled site data).
+    return null;
+  }
 }
 
 void saveLocation(String location) {
-  html.window.localStorage[_locationKey] = location;
+  try {
+    _localStorage.setItem(_locationKey, location);
+  } catch (_) {
+    // Remembering the location is a convenience; ignore blocked storage.
+  }
 }
