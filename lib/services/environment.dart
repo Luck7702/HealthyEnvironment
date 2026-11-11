@@ -166,8 +166,11 @@ class LocationService {
       return await Geolocator.getCurrentPosition(
         // City-level is enough for weather; high accuracy waits for a GPS
         // fix and drains battery on every refresh.
-        desiredAccuracy: LocationAccuracy.medium,
-      ).timeout(const Duration(seconds: 15));
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 15),
+        ),
+      );
     } catch (_) {
       return null;
     }

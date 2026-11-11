@@ -184,7 +184,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _share() async {
-    await Share.share(shareMessage(envData));
+    await SharePlus.instance.share(ShareParams(text: shareMessage(envData)));
   }
 
   @override
