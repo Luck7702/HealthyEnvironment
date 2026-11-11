@@ -18,6 +18,34 @@ void main() {
     });
   });
 
+  group('ISPU estimate', () {
+    test('matches the regulation worked example', () {
+      // Permen LHK P.14/2020 Lampiran I: PM2.5 31.4 µg/m³ -> ISPU 70.
+      expect(pm25ISPU(31.4), 70);
+      // Same example's PM10 row: 35 µg/m³ -> ISPU 35.
+      expect(pm10ISPU(35), 35);
+    });
+
+    test('uses official category boundaries', () {
+      expect(pm25ISPU(15.5), 50);
+      expect(pm25ISPU(55.4), 100);
+      expect(pm25ISPU(150.4), 200);
+      expect(pm25ISPU(250.4), 300);
+      expect(pm25ISPU(56), 101);
+      expect(pm10ISPU(50), 50);
+      expect(pm10ISPU(150), 100);
+      expect(pm10ISPU(350), 200);
+      expect(pm10ISPU(420), 300);
+      expect(pm25ISPU(900), 500);
+    });
+
+    test('selects strongest available particulate reading', () {
+      expect(const AirQuality(pm2_5: 10, pm10: 160).ispu, pm10ISPU(160));
+      expect(const AirQuality(pm2_5: 163, pm10: 163.4).ispu, 213);
+      expect(const AirQuality().ispu, isNull);
+    });
+  });
+
   group('environment risk', () {
     test('all unknown readings stay unknown', () {
       expect(Weather.emptyWeather.riskState, RiskState.unknown);

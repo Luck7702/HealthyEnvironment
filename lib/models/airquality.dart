@@ -1,9 +1,19 @@
-/// Current-concentration PM estimate, not an official daily/NowCast AQI.
+/// Current-concentration PM estimates. These are not official indices:
+/// ISPU and AQI are defined on 24-hour averages from monitoring stations.
 class AirQuality {
   final double? pm2_5;
   final double? pm10;
 
   const AirQuality({this.pm2_5, this.pm10});
+
+  /// Estimated ISPU: the higher of the PM2.5 and PM10 sub-indices.
+  int? get ispu {
+    final values = <int>[];
+    if (pm2_5 != null) values.add(pm25ISPU(pm2_5!));
+    if (pm10 != null) values.add(pm10ISPU(pm10!));
+    if (values.isEmpty) return null;
+    return values.reduce((a, b) => a > b ? a : b);
+  }
 
   int? get aqi {
     final values = <double>[];
@@ -140,3 +150,47 @@ double pm10AQI(double concentration) {
     iHigh: 500,
   );
 }
+
+/// ISPU breakpoints from Permen LHK No. P.14/MENLHK/SETJEN/KUM.1/7/2020,
+/// Lampiran I (Berita Negara RI 2020 No. 774). Each pair is
+/// (concentration µg/m³, ISPU) at the upper bound of a category.
+/// The regulation gives no ISPU upper bound for its ">300" row; this uses
+/// 500, the top of the concentration column.
+const _pm25IspuBreakpoints = [
+  (0.0, 0),
+  (15.5, 50),
+  (55.4, 100),
+  (150.4, 200),
+  (250.4, 300),
+  (500.0, 500),
+];
+
+const _pm10IspuBreakpoints = [
+  (0.0, 0),
+  (50.0, 50),
+  (150.0, 100),
+  (350.0, 200),
+  (420.0, 300),
+  (500.0, 500),
+];
+
+/// ISPU sub-index using the regulation's equation
+/// I = (Ia - Ib) / (Xa - Xb) * (Xx - Xb) + Ib, rounded as in its worked
+/// example (PM2.5 31.4 µg/m³ -> ISPU 70).
+int _ispu(double concentration, List<(double, int)> breakpoints) {
+  final c = concentration.clamp(0, breakpoints.last.$1).toDouble();
+  for (var i = 1; i < breakpoints.length; i++) {
+    final (xa, ia) = breakpoints[i];
+    if (c <= xa) {
+      final (xb, ib) = breakpoints[i - 1];
+      return ((ia - ib) / (xa - xb) * (c - xb) + ib).round();
+    }
+  }
+  return breakpoints.last.$2;
+}
+
+int pm25ISPU(double concentration) =>
+    _ispu(concentration, _pm25IspuBreakpoints);
+
+int pm10ISPU(double concentration) =>
+    _ispu(concentration, _pm10IspuBreakpoints);
