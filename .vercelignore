@@ -6,3 +6,4 @@ coverage/
 .env
 .env.*
 node_modules/
+drafts/
