@@ -344,8 +344,12 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(const MaterialApp(home: InformationScreen()));
 
+    await tester.scrollUntilVisible(find.text('Bukan saran medis'), 200);
     expect(find.text('Bukan saran medis'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('BMKG: peringatan dini cuaca resmi'), 200);
+    await tester.scrollUntilVisible(
+      find.text('BMKG: peringatan dini cuaca resmi'),
+      200,
+    );
     expect(find.text('Sumber & metode'), findsOneWidget);
     expect(find.text('NOAA/NWS: klasifikasi indeks panas'), findsOneWidget);
     expect(find.text('BMKG: peringatan dini cuaca resmi'), findsOneWidget);
