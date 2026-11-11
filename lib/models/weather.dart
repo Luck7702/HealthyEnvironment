@@ -2,6 +2,16 @@ import 'dart:math' as math;
 
 enum RiskState { unknown, incomplete, known }
 
+/// What a piece of advice is about.
+enum Hazard { air, uv, heat, weather, smoke }
+
+class Advice {
+  final Hazard hazard;
+  final String text;
+
+  const Advice(this.hazard, this.text);
+}
+
 class Weather {
   /// Estimated ISPU (Indonesian air quality index); drives the risk score.
   final int? ispu;
@@ -255,57 +265,53 @@ class Weather {
     RiskState.known => 'Risiko berdasarkan data lingkungan saat ini.',
   };
 
-  List<String> get recommendations {
-    final recs = <String>[];
+  /// Advice texts, in display order.
+  List<String> get recommendations => [for (final a in advice) a.text];
+
+  /// Advice for the current readings, each tagged with the hazard it
+  /// addresses so the UI can pick an icon without parsing the text.
+  List<Advice> get advice {
+    final recs = <Advice>[];
+    void add(Hazard hazard, String text) => recs.add(Advice(hazard, text));
     // Advice for "setiap orang" (and sensitive groups at Sedang) from
     // Permen LHK P.14/2020 Lampiran II.
     if (ispu != null) {
       if (ispu! >= 301) {
-        recs.add('Hindari semua aktivitas di luar.');
+        add(Hazard.air, 'Hindari semua aktivitas di luar.');
       } else if (ispu! >= 201) {
-        recs.add('Hindari aktivitas fisik yang terlalu lama di luar ruangan.');
+        add(Hazard.air, 'Hindari aktivitas fisik yang terlalu lama di luar ruangan.');
       } else if (ispu! >= 101) {
-        recs.add('Kurangi aktivitas fisik yang terlalu lama di luar ruangan.');
+        add(Hazard.air, 'Kurangi aktivitas fisik yang terlalu lama di luar ruangan.');
       } else if (ispu! >= 51) {
-        recs.add(
-          'Kelompok sensitif: kurangi aktivitas fisik yang terlalu lama atau berat.',
-        );
+        add(Hazard.air, 'Kelompok sensitif: kurangi aktivitas fisik yang terlalu lama atau berat.');
       }
     }
     if (uv != null) {
       if (uv! >= 8) {
-        recs.add(
-          'Cari tempat teduh; gunakan jaket lengan panjang dan tabir surya.',
-        );
+        add(Hazard.uv, 'Cari tempat teduh; gunakan jaket lengan panjang dan tabir surya.');
       } else if (uv! >= 3) {
-        recs.add(
-          'Gunakan jaket lengan panjang dan tabir surya saat berkendara.',
-        );
+        add(Hazard.uv, 'Gunakan jaket lengan panjang dan tabir surya saat berkendara.');
       }
     }
     final heat = heatSeverity;
     if (heat != null) {
       if (heat >= 0.75) {
-        recs.add(
-          'Cari tempat teduh, minum cukup, dan kurangi aktivitas berat.',
-        );
+        add(Hazard.heat, 'Cari tempat teduh, minum cukup, dan kurangi aktivitas berat.');
       } else if (heat >= 0.5) {
-        recs.add('Minum cukup dan beristirahat dari panas.');
+        add(Hazard.heat, 'Minum cukup dan beristirahat dari panas.');
       }
     }
     final severity = _conditionSeverity;
     if (_hasThunder) {
-      recs.add('Berlindung di dalam saat ada petir.');
+      add(Hazard.weather, 'Berlindung di dalam saat ada petir.');
     } else if (_hasSmokeOrHaze) {
       if (ispu == null || ispu! < 51) {
-        recs.add(
-          'Kurangi aktivitas luar dan gunakan masker saat udara berasap.',
-        );
+        add(Hazard.smoke, 'Kurangi aktivitas luar dan gunakan masker saat udara berasap.');
       }
     } else if (severity != null && severity >= 0.5) {
-      recs.add('Waspadai cuaca buruk; berhati-hati saat berkendara.');
+      add(Hazard.weather, 'Waspadai cuaca buruk; berhati-hati saat berkendara.');
     }
-    return recs.toSet().toList();
+    return recs;
   }
 
   static const emptyWeather = Weather();

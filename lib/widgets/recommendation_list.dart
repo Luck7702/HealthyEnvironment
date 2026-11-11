@@ -21,11 +21,13 @@ class RecommendationSection extends StatelessWidget {
   });
 
   List<_Recommendation> _recommendations(BuildContext context) {
-    final values = [
-      ...weather.recommendations,
-      if (scrollDemoEnabled) ...scrollDemoRecommendations,
+    final advice = [
+      ...weather.advice,
+      if (scrollDemoEnabled)
+        for (final text in scrollDemoRecommendations)
+          Advice(Hazard.weather, text),
     ];
-    if (values.isEmpty) {
+    if (advice.isEmpty) {
       return [
         _Recommendation(
           icon: weather.riskState == RiskState.unknown
@@ -39,42 +41,24 @@ class RecommendationSection extends StatelessWidget {
         ),
       ];
     }
-    return values.map((text) => _recommendationFor(context, text)).toList();
+    return [for (final item in advice) _recommendationFor(context, item)];
   }
 
-  _Recommendation _recommendationFor(BuildContext context, String text) {
-    final normalized = text.toLowerCase();
-    if (normalized.contains('uv') || normalized.contains('matahari')) {
-      return _Recommendation(
-        icon: Icons.wb_sunny_outlined,
-        color: context.appColors.orange,
-        background: context.appColors.orangeSoft,
-        text: text,
-      );
-    }
-    if (normalized.contains('hujan') ||
-        normalized.contains('petir') ||
-        normalized.contains('berkendara')) {
-      return _Recommendation(
-        icon: Icons.cloudy_snowing,
-        color: context.appColors.blue,
-        background: context.appColors.blueSoft,
-        text: text,
-      );
-    }
-    if (normalized.contains('minum') || normalized.contains('panas')) {
-      return _Recommendation(
-        icon: Icons.water_drop_outlined,
-        color: context.appColors.blue,
-        background: context.appColors.blueSoft,
-        text: text,
-      );
-    }
+  /// Icon and colours per hazard, matching the stat cards.
+  _Recommendation _recommendationFor(BuildContext context, Advice advice) {
+    final colors = context.appColors;
+    final (icon, color, background) = switch (advice.hazard) {
+      Hazard.air => (Icons.cloud_outlined, colors.green, colors.greenSoft),
+      Hazard.uv => (Icons.wb_sunny_outlined, colors.orange, colors.orangeSoft),
+      Hazard.heat => (Icons.thermostat_outlined, colors.coral, colors.coralSoft),
+      Hazard.weather => (Icons.thunderstorm_outlined, colors.blue, colors.blueSoft),
+      Hazard.smoke => (Icons.masks_outlined, colors.orange, colors.orangeSoft),
+    };
     return _Recommendation(
-      icon: Icons.groups_outlined,
-      color: context.appColors.green,
-      background: context.appColors.greenSoft,
-      text: text,
+      icon: icon,
+      color: color,
+      background: background,
+      text: advice.text,
     );
   }
 

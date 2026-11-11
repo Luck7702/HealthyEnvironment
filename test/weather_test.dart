@@ -68,6 +68,22 @@ void main() {
       );
     });
 
+    test('each advice is tagged with the hazard it addresses', () {
+      const weather = Weather(
+        ispu: 120,
+        uv: 5,
+        temp: 33,
+        condition: 'Thunderstorm',
+        conditionCode: 1087,
+      );
+      expect([for (final a in weather.advice) a.hazard], [
+        Hazard.air,
+        Hazard.uv,
+        Hazard.heat,
+        Hazard.weather,
+      ]);
+    });
+
     test('US AQI alone does not drive the risk score', () {
       const weather = Weather(aqi: 180, uv: 1, temp: 25);
       expect(weather.componentSeverity.containsKey('ISPU'), isFalse);
