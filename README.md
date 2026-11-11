@@ -91,6 +91,11 @@ It returns stable safe JSON errors: `invalid_query`, `location_not_found`, `rate
 
 Environment data loads on startup, refreshes every five minutes, stops loading after location, network, or invalid-response failures, preserves last successful readings during refresh failure, and exposes retry. Initial failures provide retry plus manual location entry.
 
+## Install and Android widget
+
+- **Web (PWA):** the home screen shows a "Pasang di layar utama" banner. Android/Chrome uses the browser install prompt; iOS shows the Share → "Tambah ke Layar Utama" steps. Manifest shortcuts open `?buka=info` (sources) and `?buka=lokasi` (change location).
+- **Android home-screen widget (for a future Play Store build):** `RiskWidgetProvider` (`android/app/src/main/kotlin/.../RiskWidgetProvider.kt`, layout `res/layout/risk_widget.xml`) shows location, risk level, ISPU/UV/temperature and update time. Flutter writes the values through [`home_widget`](https://pub.dev/packages/home_widget) after each successful load (`lib/services/home_widget_sync_android.dart`); the widget does not fetch data itself, so it shows what the app last loaded. It has not been built or run on a device yet. Before publishing, change `applicationId`/`namespace` from `com.example.LingkunganSehat` and add release signing.
+
 ## Environmental risk analysis
 
 The overall risk is the highest of four hazard levels (Rendah, Sedang, Tinggi). Every numeric cut-off below comes from the cited source. How each source's categories group into the three app levels is the app's own mapping. Ratings are indicative, not medical advice.
