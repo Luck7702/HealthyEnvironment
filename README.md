@@ -93,7 +93,7 @@ Environment data loads on startup, refreshes every five minutes, stops loading a
 
 ## Install and Android widget
 
-- **Web (PWA):** the home screen shows a "Pasang di layar utama" banner. Android/Chrome uses the browser install prompt; iOS shows the Share → "Tambah ke Layar Utama" steps. Manifest shortcuts open `?buka=info` (sources) and `?buka=lokasi` (change location).
+- **Web (PWA):** two ways to install. A "Pasang di layar utama" banner below the recommendations (hidden for good once dismissed), and an install button in the header that stays available while the app is installable. Android/Chrome uses the browser install prompt; iOS shows the Share → "Tambah ke Layar Utama" steps. Manifest shortcuts open `?buka=info` (sources) and `?buka=lokasi` (change location).
 - **Android home-screen widget (for a future Play Store build):** `RiskWidgetProvider` (`android/app/src/main/kotlin/.../RiskWidgetProvider.kt`, layout `res/layout/risk_widget.xml`) shows location, risk level, ISPU/UV/temperature and update time. Flutter writes the values through [`home_widget`](https://pub.dev/packages/home_widget) after each successful load (`lib/services/home_widget_sync_android.dart`); the widget does not fetch data itself, so it shows what the app last loaded. It has not been built or run on a device yet. Before publishing, change `applicationId`/`namespace` from `com.example.LingkunganSehat` and add release signing.
 
 ## Environmental risk analysis

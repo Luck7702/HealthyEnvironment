@@ -10,6 +10,7 @@ import 'package:lingkungan_sehat/screens/settings.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
 import 'package:lingkungan_sehat/services/home_widget_sync.dart';
 import 'package:lingkungan_sehat/services/location_preferences.dart';
+import 'package:lingkungan_sehat/services/pwa_install.dart';
 import 'package:lingkungan_sehat/services/share_message.dart';
 import 'package:lingkungan_sehat/widgets/brand_mark.dart';
 import 'package:lingkungan_sehat/widgets/env_stats.dart';
@@ -416,6 +417,16 @@ class _PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Rebuilds when the browser reports that the app can (or can no longer)
+    // be installed, to show or hide the header install button.
+    return ValueListenableBuilder<PwaInstallMode>(
+      valueListenable: pwaInstallMode,
+      builder: (context, installMode, _) => _buildHeader(context, installMode),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, PwaInstallMode installMode) {
+    final installable = installMode != PwaInstallMode.none;
     final markSize = narrow
         ? comfortable
               ? 36.0
@@ -430,13 +441,14 @@ class _PageHeader extends StatelessWidget {
         : compact
         ? 20.0
         : 30.0;
+    // Four buttons on a phone: slightly smaller so the title still fits.
     final buttonSize = narrow
-        ? 44.0
+        ? (installable ? 40.0 : 44.0)
         : compact
         ? 44.0
         : 56.0;
     final iconSize = narrow
-        ? 21.0
+        ? (installable ? 20.0 : 21.0)
         : compact
         ? 21.0
         : 27.0;
@@ -451,15 +463,19 @@ class _PageHeader extends StatelessWidget {
         BrandMark(size: markSize),
         SizedBox(width: narrow ? 8 : 15),
         Expanded(
-          child: Text(
-            'LingkunganSehat',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: context.appColors.forest,
-              fontSize: titleSize,
-              height: 1.2,
-              fontWeight: FontWeight.w700,
+          // Shrinks instead of cutting the name off on narrow phones.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'LingkunganSehat',
+              maxLines: 1,
+              style: TextStyle(
+                color: context.appColors.forest,
+                fontSize: titleSize,
+                height: 1.2,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ),
@@ -469,6 +485,16 @@ class _PageHeader extends StatelessWidget {
     final actions = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (installable) ...[
+          _HeaderAction(
+            tooltip: 'Pasang aplikasi',
+            icon: Icons.install_mobile,
+            size: buttonSize,
+            iconSize: iconSize,
+            onPressed: () => installApp(context, installMode),
+          ),
+          SizedBox(width: actionGap),
+        ],
         _HeaderAction(
           tooltip: 'Bagikan',
           icon: Icons.share_outlined,

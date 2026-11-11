@@ -5,6 +5,7 @@ import 'package:lingkungan_sehat/models/weather.dart';
 import 'package:lingkungan_sehat/screens/home.dart';
 import 'package:lingkungan_sehat/screens/information.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
+import 'package:lingkungan_sehat/services/pwa_install.dart';
 import 'package:lingkungan_sehat/widgets/install_banner.dart';
 
 void main() {
@@ -362,5 +363,48 @@ void main() {
       const MaterialApp(home: Scaffold(body: InstallBanner())),
     );
     expect(find.byKey(const Key('install-banner')), findsNothing);
+  });
+
+  group('install button', () {
+    // Outside the browser the install state is a plain ValueNotifier; tests
+    // switch it to simulate a browser that allows installing.
+    final installState = pwaInstallMode as ValueNotifier<PwaInstallMode>;
+    tearDown(() => installState.value = PwaInstallMode.none);
+
+    for (final size in const [Size(320, 700), Size(360, 740), Size(412, 915)]) {
+      testWidgets('header shows install button without overflow at $size', (
+        WidgetTester tester,
+      ) async {
+        await tester.binding.setSurfaceSize(size);
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        installState.value = PwaInstallMode.prompt;
+
+        await pumpHome(tester);
+
+        expect(find.byTooltip('Pasang aplikasi'), findsOneWidget);
+        expect(find.text('LingkunganSehat'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('header has no install button when not installable', (
+      WidgetTester tester,
+    ) async {
+      await pumpHome(tester);
+      expect(find.byTooltip('Pasang aplikasi'), findsNothing);
+    });
+
+    testWidgets('on iPhone the install button explains the steps', (
+      WidgetTester tester,
+    ) async {
+      installState.value = PwaInstallMode.iosHint;
+      await pumpHome(tester);
+
+      await tester.tap(find.byTooltip('Pasang aplikasi'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mengerti'), findsOneWidget);
+      expect(find.textContaining('Tambah ke Layar Utama'), findsWidgets);
+    });
   });
 }

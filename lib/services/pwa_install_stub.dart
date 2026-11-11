@@ -1,10 +1,15 @@
-/// Non-web platforms: installing as a PWA does not apply.
+import 'package:flutter/foundation.dart';
+
+/// How the app can be added to the home screen in this browser.
 enum PwaInstallMode { none, prompt, iosHint }
 
-PwaInstallMode pwaInstallMode() => PwaInstallMode.none;
+/// Non-web platforms: installing as a PWA does not apply.
+final ValueListenable<PwaInstallMode> pwaInstallMode = ValueNotifier(
+  PwaInstallMode.none,
+);
 
 Future<bool> promptPwaInstall() async => false;
 
-void dismissPwaInstall() {}
+bool pwaBannerDismissed() => true;
 
-void onPwaInstallChange(void Function() callback) {}
+void dismissPwaBanner() {}
