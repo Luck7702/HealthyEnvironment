@@ -134,6 +134,7 @@ Future<EnvData> loadEnvironment({
     location: '${data['location']}',
     localTime: time,
     weather: Weather(
+      ispu: (data['ispu'] as num?)?.toInt(),
       aqi: (data['aqi'] as num?)?.toInt(),
       uv: (data['uv'] as num?)?.toDouble(),
       temp: (data['temp'] as num?)?.toDouble(),
@@ -221,6 +222,7 @@ class EnvironmentService {
       'status': EnvironmentStatus.success,
       'location': location['name'],
       'localtime': location['localtime'],
+      'ispu': AirQuality(pm2_5: pm25Value, pm10: pm10Value).ispu,
       'aqi': AirQuality(pm2_5: pm25Value, pm10: pm10Value).aqi,
     };
     if (conditionText != null) result['condition'] = conditionText;

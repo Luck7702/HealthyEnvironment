@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:lingkungan_sehat/models/airquality.dart';
 import 'package:lingkungan_sehat/models/weather.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
 
@@ -65,6 +66,8 @@ void main() {
     expect(result['condition'], 'Sunny');
     expect(result['conditionCode'], 1000);
     expect(result.containsKey('isDay'), isFalse);
+    expect(result['ispu'], pm25ISPU(10.0));
+    expect(result['aqi'], isNotNull);
   });
 
   test('day/night flag maps to isDay and ignores invalid values', () {

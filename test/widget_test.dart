@@ -11,6 +11,7 @@ void main() {
     location: 'Ciledug 1',
     localTime: '14:40',
     weather: Weather(
+      ispu: 108,
       aqi: 134,
       uv: 6.1,
       temp: 32.9,
@@ -77,7 +78,8 @@ void main() {
       location: 'Karetsemanggi',
       localTime: '22:16',
       weather: Weather(
-        aqi: 156,
+        ispu: 156,
+        aqi: 205,
         uv: 0,
         temp: 28.6,
         humidity: 66,
@@ -268,16 +270,14 @@ void main() {
 
     await pumpHome(tester);
 
-    await tester.tap(find.text('AQI'));
+    await tester.tap(find.text('ISPU'));
     await tester.pumpAndSettle();
-    expect(find.text('Kualitas udara (AQI)'), findsOneWidget);
-    expect(find.text('101-150'), findsOneWidget);
-    expect(find.text('Tidak sehat bagi kelompok sensitif'), findsWidgets);
+    expect(find.text('Kualitas udara (ISPU)'), findsOneWidget);
+    expect(find.text('101-200'), findsOneWidget);
+    expect(find.text('Tidak sehat · risiko Tinggi'), findsOneWidget);
     expect(
-      tester
-          .getTopLeft(find.text('Tidak sehat bagi kelompok sensitif').first)
-          .dy,
-      greaterThan(tester.getTopLeft(find.text('134 AQI')).dy),
+      tester.getTopLeft(find.text('Tidak sehat · risiko Tinggi')).dy,
+      greaterThan(tester.getTopLeft(find.text('108 ISPU · AQI US EPA 134')).dy),
     );
     await tester.tap(find.text('Tutup'));
     await tester.pumpAndSettle();
@@ -314,7 +314,7 @@ void main() {
 
     await pumpHome(tester);
 
-    expect(find.text('AQI'), findsOneWidget);
+    expect(find.text('ISPU'), findsOneWidget);
     expect(find.text('Cuaca'), findsNothing);
 
     await tester.drag(

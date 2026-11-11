@@ -73,7 +73,7 @@ class InformationScreen extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'Risiko keseluruhan memakai bahaya tertinggi dari kualitas udara (skala AQI US EPA), UV (WHO), panas (indeks panas NWS, naik satu tingkat saat siang cerah sesuai OSHA), dan cuaca (petir dan hujan lebat). Kelembapan hanya ditampilkan sebagai informasi.',
+            'Risiko keseluruhan memakai bahaya tertinggi dari kualitas udara (perkiraan ISPU, Permen LHK P.14/2020), UV (WHO), panas (indeks panas NWS, naik satu tingkat saat siang cerah sesuai OSHA), dan cuaca (petir dan hujan lebat). Kelembapan hanya ditampilkan sebagai informasi.',
             style: TextStyle(
               color: context.appColors.muted,
               fontSize: 15,

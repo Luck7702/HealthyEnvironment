@@ -44,13 +44,13 @@ class _EnvStatsState extends State<EnvStats> {
       builder: (context, constraints) {
         final cards = [
           _StatCard(
-            label: 'AQI',
-            value: weather.aqi?.toString() ?? '-',
-            status: _aqiCardStatus(weather.aqi),
+            label: 'ISPU',
+            value: weather.ispu?.toString() ?? '-',
+            status: _ispuCardStatus(weather.ispu),
             icon: Icons.cloud,
             accent: EnvStatsColors.forSeverity(
               context,
-              weather.componentSeverity['AQI'],
+              weather.componentSeverity['ISPU'],
             ),
             compact: widget.compactDashboard,
             comfortable: widget.comfortableDashboard,
@@ -58,34 +58,32 @@ class _EnvStatsState extends State<EnvStats> {
             height: widget.cardHeight,
             onTap: () => InfoDialog.showMetric(
               context,
-              title: 'Kualitas udara (AQI)',
-              currentValue: weather.aqi == null
-                  ? 'Belum tersedia'
-                  : '${weather.aqi} AQI',
-              currentStatus: _aqiStatus(weather.aqi),
+              title: 'Kualitas udara (ISPU)',
+              currentValue: _ispuDialogValue(weather),
+              currentStatus: _ispuStatus(weather.ispu),
               definition:
-                  'AQI memperkirakan kualitas udara dari konsentrasi PM2.5 dan PM10 saat ini, memakai skala US EPA. Nilai ini perkiraan sesaat, bukan AQI harian atau ISPU resmi.',
+                  'ISPU (Indeks Standar Pencemar Udara) adalah indeks resmi kualitas udara Indonesia menurut Permen LHK P.14/2020. Nilai ini perkiraan dari satu pembacaan PM2.5 dan PM10 data model, bukan ISPU resmi KLH yang memakai rata-rata 24 jam dari stasiun pemantau. Nilai AQI US EPA ditampilkan sebagai pembanding.',
               impact:
-                  'Nilai tinggi dapat mengiritasi mata dan saluran napas. Anak, lansia, dan orang dengan gangguan pernapasan lebih rentan.',
-              guidance: _aqiGuidance(weather.aqi),
+                  'Udara tercemar dapat mengiritasi mata dan saluran napas. Kelompok sensitif seperti anak, lansia, penderita asma, dan penderita penyakit jantung lebih rentan.',
+              guidance: _ispuGuidance(weather.ispu),
               icon: Icons.cloud_outlined,
               accent: EnvStatsColors.forSeverity(
-              context,
-              weather.componentSeverity['AQI'],
-            ),
+                context,
+                weather.componentSeverity['ISPU'],
+              ),
               ranges: const [
                 InfoRange('0-50', 'Baik · risiko Rendah'),
                 InfoRange('51-100', 'Sedang · risiko Sedang'),
-                InfoRange(
-                  '101-150',
-                  'Tidak sehat bagi kelompok sensitif · risiko Sedang',
-                ),
-                InfoRange('151-200', 'Tidak sehat · risiko Tinggi'),
+                InfoRange('101-200', 'Tidak sehat · risiko Tinggi'),
                 InfoRange('201-300', 'Sangat tidak sehat · risiko Tinggi'),
                 InfoRange('301+', 'Berbahaya · risiko Tinggi'),
               ],
-              activeRange: _aqiRangeIndex(weather.aqi),
-              sources: const [Sources.epaAqi, Sources.weatherApi],
+              activeRange: _ispuRangeIndex(weather.ispu),
+              sources: const [
+                Sources.ispuRegulation,
+                Sources.epaAqi,
+                Sources.weatherApi,
+              ],
             ),
           ),
           _StatCard(
@@ -273,25 +271,50 @@ class _EnvStatsState extends State<EnvStats> {
     );
   }
 
-  static String _aqiCardStatus(int? value) {
-    if (value == null) return 'Belum tersedia';
-    if (value <= 50) return 'Baik';
-    if (value <= 100) return 'Sedang';
-    if (value <= 150) return 'Sensitif';
-    if (value <= 200) return 'Tidak sehat';
-    if (value <= 300) return 'Sangat buruk';
-    return 'Berbahaya';
+  /// ISPU categories from Permen LHK P.14/2020 Lampiran II.
+  static int _ispuRangeIndex(int? value) {
+    if (value == null) return -1;
+    if (value <= 50) return 0;
+    if (value <= 100) return 1;
+    if (value <= 200) return 2;
+    if (value <= 300) return 3;
+    return 4;
   }
 
-  static String _aqiStatus(int? value) {
-    if (value == null) return 'Data belum tersedia';
-    if (value <= 50) return 'Baik';
-    if (value <= 100) return 'Sedang';
-    if (value <= 150) return 'Tidak sehat bagi kelompok sensitif';
-    if (value <= 200) return 'Tidak sehat';
-    if (value <= 300) return 'Sangat tidak sehat';
-    return 'Berbahaya';
+  static String _ispuStatus(int? value) => switch (_ispuRangeIndex(value)) {
+    -1 => 'Data belum tersedia',
+    0 => 'Baik',
+    1 => 'Sedang',
+    2 => 'Tidak sehat',
+    3 => 'Sangat tidak sehat',
+    _ => 'Berbahaya',
+  };
+
+  static String _ispuCardStatus(int? value) => switch (_ispuRangeIndex(value)) {
+    -1 => 'Belum tersedia',
+    3 => 'Sgt tidak sehat',
+    _ => _ispuStatus(value),
+  };
+
+  static String _ispuDialogValue(Weather weather) {
+    if (weather.ispu == null) return 'Belum tersedia';
+    final aqi = weather.aqi == null ? '' : ' · AQI US EPA ${weather.aqi}';
+    return '${weather.ispu} ISPU$aqi';
   }
+
+  /// "Apa yang harus dilakukan" from Permen LHK P.14/2020 Lampiran II.
+  static String _ispuGuidance(int? value) => switch (_ispuRangeIndex(value)) {
+    -1 => 'Perbarui data sebelum merencanakan aktivitas.',
+    0 => 'Sangat baik melakukan kegiatan di luar.',
+    1 =>
+      'Kelompok sensitif: kurangi aktivitas fisik yang terlalu lama atau berat. Setiap orang: masih dapat beraktivitas di luar.',
+    2 =>
+      'Kelompok sensitif: boleh beraktivitas di luar, tetapi lebih sering beristirahat dan pilih aktivitas ringan; amati gejala batuk atau napas sesak. Setiap orang: kurangi aktivitas fisik yang terlalu lama di luar ruangan.',
+    3 =>
+      'Kelompok sensitif: hindari semua aktivitas di luar. Setiap orang: hindari aktivitas fisik yang terlalu lama di luar ruangan dan pertimbangkan aktivitas di dalam ruangan.',
+    _ =>
+      'Kelompok sensitif: tetap di dalam ruangan dan hanya melakukan sedikit aktivitas. Setiap orang: hindari semua aktivitas di luar.',
+  };
 
   static String _uvStatus(double? value) {
     if (value == null) return 'Belum tersedia';
@@ -330,16 +353,6 @@ class _EnvStatsState extends State<EnvStats> {
     return '$actual · terasa ${heatIndex.toStringAsFixed(1)}°C';
   }
 
-  static int _aqiRangeIndex(int? value) {
-    if (value == null) return -1;
-    if (value <= 50) return 0;
-    if (value <= 100) return 1;
-    if (value <= 150) return 2;
-    if (value <= 200) return 3;
-    if (value <= 300) return 4;
-    return 5;
-  }
-
   static int _uvRangeIndex(double? value) {
     if (value == null) return -1;
     if (value <= 2) return 0;
@@ -347,18 +360,6 @@ class _EnvStatsState extends State<EnvStats> {
     if (value <= 7) return 2;
     if (value <= 10) return 3;
     return 4;
-  }
-
-  static String _aqiGuidance(int? value) {
-    if (value == null) return 'Perbarui data sebelum merencanakan aktivitas.';
-    if (value <= 50) return 'Aktivitas luar dapat dilakukan seperti biasa.';
-    if (value <= 100) {
-      return 'Pantau gejala dan kurangi aktivitas berat bila terasa tidak nyaman.';
-    }
-    if (value <= 150) {
-      return 'Kelompok sensitif sebaiknya mengurangi aktivitas berat di luar.';
-    }
-    return 'Batasi aktivitas luar dan gunakan masker yang sesuai.';
   }
 
   static String _uvGuidance(double? value) {

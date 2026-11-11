@@ -47,27 +47,54 @@ void main() {
   });
 
   group('environment risk', () {
+    test('air quality risk follows ISPU categories with official advice', () {
+      expect(const Weather(ispu: 50).componentSeverity['ISPU'], 0);
+      expect(const Weather(ispu: 51).componentSeverity['ISPU'], 0.5);
+      expect(const Weather(ispu: 101).componentSeverity['ISPU'], 0.75);
+      expect(const Weather(ispu: 301).componentSeverity['ISPU'], 1);
+      expect(
+        const Weather(ispu: 70).recommendations,
+        contains(
+          'Kelompok sensitif: kurangi aktivitas fisik yang terlalu lama atau berat.',
+        ),
+      );
+      expect(
+        const Weather(ispu: 250).recommendations,
+        contains('Hindari aktivitas fisik yang terlalu lama di luar ruangan.'),
+      );
+      expect(
+        const Weather(ispu: 320).recommendations,
+        contains('Hindari semua aktivitas di luar.'),
+      );
+    });
+
+    test('US AQI alone does not drive the risk score', () {
+      const weather = Weather(aqi: 180, uv: 1, temp: 25);
+      expect(weather.componentSeverity.containsKey('ISPU'), isFalse);
+      expect(weather.riskState, RiskState.incomplete);
+    });
+
     test('all unknown readings stay unknown', () {
       expect(Weather.emptyWeather.riskState, RiskState.unknown);
       expect(Weather.emptyWeather.getRiskLevel, 'Belum diketahui');
     });
 
     test('strongest known hazard wins when data is partial', () {
-      const weather = Weather(aqi: 40, uv: 8);
+      const weather = Weather(ispu: 40, uv: 8);
       expect(weather.riskState, RiskState.incomplete);
       expect(weather.getRiskLevel, 'Tinggi');
       expect(weather.recommendations, isNotEmpty);
     });
 
     test('core readings are complete without humidity or condition', () {
-      const weather = Weather(aqi: 40, uv: 1, temp: 25);
+      const weather = Weather(ispu: 40, uv: 1, temp: 25);
       expect(weather.riskState, RiskState.known);
       expect(weather.getRiskLevel, 'Rendah');
     });
 
     test('humidity raises heat risk through heat index', () {
-      const humid = Weather(aqi: 20, uv: 1, temp: 32, humidity: 80);
-      const dry = Weather(aqi: 20, uv: 1, temp: 32, humidity: 35);
+      const humid = Weather(ispu: 20, uv: 1, temp: 32, humidity: 80);
+      const dry = Weather(ispu: 20, uv: 1, temp: 32, humidity: 35);
 
       expect(humid.heatIndex, closeTo(44.4, 0.1));
       expect(dry.heatIndex, closeTo(31.5, 0.1));
@@ -89,9 +116,9 @@ void main() {
     });
 
     test('direct sun raises heat risk one level', () {
-      const shade = Weather(aqi: 20, uv: 1, temp: 30, humidity: 60);
+      const shade = Weather(ispu: 20, uv: 1, temp: 30, humidity: 60);
       const sunny = Weather(
-        aqi: 20,
+        ispu: 20,
         uv: 9,
         temp: 30,
         humidity: 60,
@@ -138,7 +165,7 @@ void main() {
     });
 
     test('dew point comfort follows NWS scale and is not scored', () {
-      const humid = Weather(aqi: 20, uv: 1, temp: 25, humidity: 85);
+      const humid = Weather(ispu: 20, uv: 1, temp: 25, humidity: 85);
       const mild = Weather(temp: 25, humidity: 50);
       const dry = Weather(temp: 25, humidity: 30);
       expect(humid.dewPoint, closeTo(22.3, 0.2));
@@ -151,27 +178,27 @@ void main() {
     });
 
     test('cold air does not raise risk', () {
-      const weather = Weather(aqi: 20, uv: 1, temp: -5);
+      const weather = Weather(ispu: 20, uv: 1, temp: -5);
       expect(weather.componentSeverity['Suhu'], 0);
       expect(weather.getRiskLevel, 'Rendah');
       expect(weather.recommendations, isEmpty);
     });
 
     test('temperature risk falls back to air temperature without humidity', () {
-      const weather = Weather(aqi: 20, uv: 1, temp: 33);
+      const weather = Weather(ispu: 20, uv: 1, temp: 33);
       expect(weather.heatIndex, isNull);
       expect(weather.getRiskLevel, 'Sedang');
     });
 
     test('invalid humidity does not distort temperature risk', () {
-      const weather = Weather(aqi: 20, uv: 1, temp: 33, humidity: 101);
+      const weather = Weather(ispu: 20, uv: 1, temp: 33, humidity: 101);
       expect(weather.heatIndex, isNull);
       expect(weather.getRiskLevel, 'Sedang');
     });
 
     test('unsupported condition does not downgrade complete core readings', () {
       const weather = Weather(
-        aqi: 40,
+        ispu: 40,
         uv: 1,
         temp: 25,
         humidity: 60,
@@ -184,7 +211,7 @@ void main() {
 
     test('smoky haze is classified without duplicating high AQI advice', () {
       const weather = Weather(
-        aqi: 156,
+        ispu: 156,
         uv: 0,
         temp: 28.6,
         humidity: 66,
@@ -195,7 +222,7 @@ void main() {
       expect(weather.getRiskLevel, 'Tinggi');
       expect(
         weather.recommendations,
-        contains('Kurangi aktivitas luar; gunakan masker yang sesuai.'),
+        contains('Kurangi aktivitas fisik yang terlalu lama di luar ruangan.'),
       );
       expect(
         weather.recommendations,
@@ -227,7 +254,7 @@ void main() {
 
     test('weather condition contributes to risk', () {
       const weather = Weather(
-        aqi: 20,
+        ispu: 20,
         uv: 1,
         temp: 25,
         humidity: 60,
@@ -259,7 +286,7 @@ void main() {
 
     test('severe non-thunder weather does not produce lightning advice', () {
       const weather = Weather(
-        aqi: 20,
+        ispu: 20,
         uv: 1,
         temp: 25,
         condition: 'Blizzard',

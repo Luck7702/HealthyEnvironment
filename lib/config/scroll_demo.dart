@@ -21,6 +21,7 @@ Future<EnvData> loadScrollDemoEnvironment({String? query}) async =>
       location: 'Lokasi uji',
       localTime: 'Demo',
       weather: Weather(
+        ispu: 108,
         aqi: 134,
         uv: 6.1,
         temp: 32.9,

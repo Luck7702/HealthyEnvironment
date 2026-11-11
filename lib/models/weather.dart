@@ -3,6 +3,10 @@ import 'dart:math' as math;
 enum RiskState { unknown, incomplete, known }
 
 class Weather {
+  /// Estimated ISPU (Indonesian air quality index); drives the risk score.
+  final int? ispu;
+
+  /// Estimated US EPA AQI, shown only for comparison.
   final int? aqi;
   final double? uv;
   final double? temp;
@@ -14,6 +18,7 @@ class Weather {
   final bool? isDay;
 
   const Weather({
+    this.ispu,
     this.aqi,
     this.uv,
     this.temp,
@@ -25,7 +30,8 @@ class Weather {
 
   Map<String, double> get componentSeverity {
     final values = <String, double>{};
-    if (aqi != null) values['AQI'] = _band(aqi!.toDouble(), 51, 151, 301);
+    // ISPU: Baik ≤50 Rendah, Sedang 51–100, Tidak Sehat and worse ≥101 Tinggi.
+    if (ispu != null) values['ISPU'] = _band(ispu!.toDouble(), 51, 101, 301);
     if (uv != null) values['UV'] = _band(uv!, 3, 8, 11);
     final heat = heatSeverity;
     if (heat != null) values['Suhu'] = heat;
@@ -230,7 +236,7 @@ class Weather {
 
   RiskState get riskState {
     if (componentSeverity.isEmpty) return RiskState.unknown;
-    return aqi != null && uv != null && temp != null
+    return ispu != null && uv != null && temp != null
         ? RiskState.known
         : RiskState.incomplete;
   }
@@ -251,13 +257,19 @@ class Weather {
 
   List<String> get recommendations {
     final recs = <String>[];
-    if (aqi != null) {
-      if (aqi! >= 151) {
-        recs.add('Kurangi aktivitas luar; gunakan masker yang sesuai.');
-      } else if (aqi! >= 101) {
-        recs.add('Kelompok sensitif sebaiknya kurangi aktivitas luar.');
-      } else if (aqi! >= 51) {
-        recs.add('Pertimbangkan mengurangi aktivitas berat di luar.');
+    // Advice for "setiap orang" (and sensitive groups at Sedang) from
+    // Permen LHK P.14/2020 Lampiran II.
+    if (ispu != null) {
+      if (ispu! >= 301) {
+        recs.add('Hindari semua aktivitas di luar.');
+      } else if (ispu! >= 201) {
+        recs.add('Hindari aktivitas fisik yang terlalu lama di luar ruangan.');
+      } else if (ispu! >= 101) {
+        recs.add('Kurangi aktivitas fisik yang terlalu lama di luar ruangan.');
+      } else if (ispu! >= 51) {
+        recs.add(
+          'Kelompok sensitif: kurangi aktivitas fisik yang terlalu lama atau berat.',
+        );
       }
     }
     if (uv != null) {
@@ -285,7 +297,7 @@ class Weather {
     if (_hasThunder) {
       recs.add('Berlindung di dalam saat ada petir.');
     } else if (_hasSmokeOrHaze) {
-      if (aqi == null || aqi! < 51) {
+      if (ispu == null || ispu! < 51) {
         recs.add(
           'Kurangi aktivitas luar dan gunakan masker saat udara berasap.',
         );

@@ -7,6 +7,10 @@ class Source {
 }
 
 class Sources {
+  static const ispuRegulation = Source(
+    'Permen LHK P.14/2020: Indeks Standar Pencemar Udara',
+    'https://peraturan.bpk.go.id/Details/163466/permen-lhk-no-14-tahun-2020',
+  );
   static const epaAqi = Source(
     'US EPA: AQI breakpoints',
     'https://aqs.epa.gov/aqsweb/documents/codetables/aqi_breakpoints.html',
@@ -45,6 +49,7 @@ class Sources {
   );
 
   static const all = [
+    ispuRegulation,
     epaAqi,
     whoUv,
     icnirpUv,
