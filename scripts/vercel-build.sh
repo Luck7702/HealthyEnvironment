@@ -15,4 +15,8 @@ fi
 
 flutter config --no-analytics
 flutter pub get
+# Fail the deployment if analysis or tests fail, so broken code never gets a
+# preview or reaches production. Infos (style lints) are reported, not fatal.
+flutter analyze --no-fatal-infos
+flutter test
 flutter build web --release
