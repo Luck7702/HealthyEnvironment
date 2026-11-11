@@ -19,20 +19,6 @@ class RiskLevelColors {
 }
 
 class EnvStatsColors {
-  static Color getAqiAccent(BuildContext context, int? aqi) {
-    if (aqi == null) return context.appColors.muted;
-    if (aqi >= 150) return context.appColors.coral;
-    if (aqi >= 100) return context.appColors.orange;
-    return context.appColors.green;
-  }
-
-  static Color getUvAccent(BuildContext context, double? uv) {
-    if (uv == null) return context.appColors.muted;
-    if (uv >= 8) return context.appColors.coral;
-    if (uv >= 4) return context.appColors.orange;
-    return context.appColors.green;
-  }
-
   /// Colour for a component severity from [Weather.componentSeverity]:
   /// green Rendah, orange Sedang, coral Tinggi.
   static Color forSeverity(BuildContext context, double? severity) {
