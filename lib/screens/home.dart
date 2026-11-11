@@ -33,7 +33,11 @@ class HomeScreenState extends State<HomeScreen> {
     weather: Weather.emptyWeather,
     status: EnvironmentStatus.empty,
   );
+  static const _refreshInterval = Duration(minutes: 5);
+
   Timer? _refreshTimer;
+  late final AppLifecycleListener _lifecycle;
+  DateTime? _lastLoadedAt;
   bool loading = true;
   bool refreshing = false;
   String? errorStatus;
@@ -47,11 +51,31 @@ class HomeScreenState extends State<HomeScreen> {
 
     _activeQuery = readSavedLocation();
     initializeEnvironment(query: _activeQuery);
-    _refreshTimer = Timer.periodic(
-      const Duration(minutes: 5),
-      (_) => initializeEnvironment(showLoading: false),
+    _startRefreshTimer();
+    // No polling (API calls, GPS) while the tab or app is in the background.
+    _lifecycle = AppLifecycleListener(
+      onHide: () => _refreshTimer?.cancel(),
+      onShow: _resumeRefresh,
     );
     _openShortcutTarget();
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(
+      _refreshInterval,
+      (_) => initializeEnvironment(showLoading: false),
+    );
+  }
+
+  /// Back in the foreground: refresh at once if the data went stale while
+  /// hidden, then resume the regular interval.
+  void _resumeRefresh() {
+    final last = _lastLoadedAt;
+    if (last == null || DateTime.now().difference(last) >= _refreshInterval) {
+      initializeEnvironment(showLoading: false);
+    }
+    _startRefreshTimer();
   }
 
   /// Opens the screen requested by a home-screen shortcut (web manifest
@@ -72,6 +96,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _lifecycle.dispose();
     super.dispose();
   }
 
@@ -115,6 +140,7 @@ class HomeScreenState extends State<HomeScreen> {
         saveLocation(effectiveQuery);
       }
       syncHomeWidget(freshData);
+      _lastLoadedAt = DateTime.now();
       setState(() {
         envData = freshData;
         loading = false;
