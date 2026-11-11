@@ -8,6 +8,7 @@ import 'package:lingkungan_sehat/models/weather.dart';
 import 'package:lingkungan_sehat/screens/information.dart';
 import 'package:lingkungan_sehat/screens/settings.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
+import 'package:lingkungan_sehat/services/home_widget_sync.dart';
 import 'package:lingkungan_sehat/services/location_preferences.dart';
 import 'package:lingkungan_sehat/services/share_message.dart';
 import 'package:lingkungan_sehat/widgets/brand_mark.dart';
@@ -113,6 +114,7 @@ class HomeScreenState extends State<HomeScreen> {
       if (effectiveQuery != null && effectiveQuery.isNotEmpty) {
         saveLocation(effectiveQuery);
       }
+      syncHomeWidget(freshData);
       setState(() {
         envData = freshData;
         loading = false;
