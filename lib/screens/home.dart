@@ -9,6 +9,7 @@ import 'package:lingkungan_sehat/screens/information.dart';
 import 'package:lingkungan_sehat/screens/settings.dart';
 import 'package:lingkungan_sehat/services/environment.dart';
 import 'package:lingkungan_sehat/services/location_preferences.dart';
+import 'package:lingkungan_sehat/services/share_message.dart';
 import 'package:lingkungan_sehat/widgets/brand_mark.dart';
 import 'package:lingkungan_sehat/widgets/env_stats.dart';
 import 'package:lingkungan_sehat/widgets/location_bar.dart';
@@ -138,9 +139,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _share() async {
-    await Share.share(
-      'Cek kondisi lingkungan sekitar di LingkunganSehat.\nhttps://app.lingkungansehat.my.id',
-    );
+    await Share.share(shareMessage(envData));
   }
 
   @override
